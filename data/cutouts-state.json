@@ -1,0 +1,89 @@
+{
+  "cutouts": [
+    {
+      "id": "cutout_1774374856205_4qf2sf",
+      "createdAt": "2026-03-24T17:54:16.205Z",
+      "filename": "2026/03/24/cutout-1774374846074-m1o49x.png",
+      "relativePath": "2026/03/24/cutout-1774374846074-m1o49x.png",
+      "imageUrl": "/cutouts/2026/03/24/cutout-1774374846074-m1o49x.png",
+      "localPath": "C:\\Users\\Vitor-Pessoal\\Documents\\GeradorImg\\cutouts\\2026\\03\\24\\cutout-1774374846074-m1o49x.png",
+      "folder": "",
+      "sourceImageUrl": "/generated/2026/03/24/2026-03-24T17-53-31-861Z-gemini-2.png",
+      "sourceJobId": "job_1774374798834_u7xkwl",
+      "label": "remover piramide do fundo - versao 2/2"
+    },
+    {
+      "id": "cutout_1774316828315_9nbcq5",
+      "createdAt": "2026-03-24T01:47:08.316Z",
+      "filename": "cutout-1774316819526-zvpvo4.png",
+      "imageUrl": "/cutouts/cutout-1774316819526-zvpvo4.png",
+      "localPath": "C:\\Users\\Vitor-Pessoal\\Documents\\GeradorImg\\cutouts\\cutout-1774316819526-zvpvo4.png",
+      "sourceImageUrl": "/generated/2026-03-23T23-11-46-559Z-gemini-2.5-flash-image.png",
+      "sourceJobId": "job_1774307495308_o8u40o",
+      "label": "troque p de noite",
+      "relativePath": "cutout-1774316819526-zvpvo4.png",
+      "folder": ""
+    },
+    {
+      "id": "cutout_1774313044275_217df8",
+      "createdAt": "2026-03-24T00:44:04.275Z",
+      "filename": "cutout-1774313033944-njmyjp.png",
+      "imageUrl": "/cutouts/cutout-1774313033944-njmyjp.png",
+      "localPath": "C:\\Users\\Vitor-Pessoal\\Documents\\GeradorImg\\cutouts\\cutout-1774313033944-njmyjp.png",
+      "sourceImageUrl": "/generated/2026-03-23T20-12-40-081Z-gemini-2.5-flash-image.png",
+      "sourceJobId": "job_1774296749565_gs3ynj",
+      "label": "GATO COMENDO",
+      "relativePath": "cutout-1774313033944-njmyjp.png",
+      "folder": ""
+    },
+    {
+      "id": "cutout_1774312756283_qzwfxs",
+      "createdAt": "2026-03-24T00:39:16.283Z",
+      "filename": "cutout-1774312743654-qvsz9y.png",
+      "imageUrl": "/cutouts/cutout-1774312743654-qvsz9y.png",
+      "localPath": "C:\\Users\\Vitor-Pessoal\\Documents\\GeradorImg\\cutouts\\cutout-1774312743654-qvsz9y.png",
+      "sourceImageUrl": "/generated/2026-03-23T20-13-19-585Z-gemini-2.5-flash-image.png",
+      "sourceJobId": "job_1774296793529_3sq4y3",
+      "label": "GATO COMENDO BANANA",
+      "relativePath": "cutout-1774312743654-qvsz9y.png",
+      "folder": ""
+    },
+    {
+      "id": "cutout_1774312697251_06xqqa",
+      "createdAt": "2026-03-24T00:38:17.251Z",
+      "filename": "cutout-1774312686287-r6u17x.png",
+      "imageUrl": "/cutouts/cutout-1774312686287-r6u17x.png",
+      "localPath": "C:\\Users\\Vitor-Pessoal\\Documents\\GeradorImg\\cutouts\\cutout-1774312686287-r6u17x.png",
+      "sourceImageUrl": "/generated/2026-03-23T23-24-27-827Z-gemini-2.5-flash-image.png",
+      "sourceJobId": "job_1774308253479_i6maer",
+      "label": "Edite apenas a regiao mostrada na referencia recortada.\nMantenha o restante da imagem igual, preservando enquadramento, fundo e elementos fora da area marcada.\nPedido do usuario: deixe rosa",
+      "relativePath": "cutout-1774312686287-r6u17x.png",
+      "folder": ""
+    },
+    {
+      "id": "cutout_1774312199281_74765n",
+      "createdAt": "2026-03-24T00:29:59.281Z",
+      "filename": "cutout-1774312190063-tym78p.png",
+      "imageUrl": "/cutouts/cutout-1774312190063-tym78p.png",
+      "localPath": "C:\\Users\\Vitor-Pessoal\\Documents\\GeradorImg\\cutouts\\cutout-1774312190063-tym78p.png",
+      "sourceImageUrl": "/generated/2026-03-23T23-24-27-827Z-gemini-2.5-flash-image.png",
+      "sourceJobId": "job_1774308253479_i6maer",
+      "label": "Edite apenas a regiao mostrada na referencia recortada.\nMantenha o restante da imagem igual, preservando enquadramento, fundo e elementos fora da area marcada.\nPedido do usuario: deixe rosa",
+      "relativePath": "cutout-1774312190063-tym78p.png",
+      "folder": ""
+    },
+    {
+      "id": "cutout_1774311818006_upz8we",
+      "createdAt": "2026-03-24T00:23:38.006Z",
+      "filename": "cutout-1774311800905-1l1mor.png",
+      "imageUrl": "/cutouts/cutout-1774311800905-1l1mor.png",
+      "localPath": "C:\\Users\\Vitor-Pessoal\\Documents\\GeradorImg\\cutouts\\cutout-1774311800905-1l1mor.png",
+      "sourceImageUrl": "/generated/2026-03-23T19-42-07-913Z-gemini-2.5-flash-image.png",
+      "sourceJobId": null,
+      "label": "teste cutout",
+      "relativePath": "cutout-1774311800905-1l1mor.png",
+      "folder": ""
+    }
+  ],
+  "updatedAt": "2026-03-24T17:54:16.206Z"
+}

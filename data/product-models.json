@@ -1,0 +1,109 @@
+{
+  "productModels": [
+    {
+      "id": "product_model_1774531413054_eutwc9",
+      "alias": "nix",
+      "name": "nix",
+      "notes": "manter fideldidade do produto",
+      "createdAt": "2026-03-26T13:23:33.054Z",
+      "updatedAt": "2026-03-26T13:23:33.054Z",
+      "referenceImages": [
+        {
+          "id": "ref_1774531413044_6oga51",
+          "name": "448A2126-removebg-preview.png",
+          "mimeType": "image/png",
+          "size": 143830,
+          "relativePath": "product-models/nix/2026/03/26/1774531413045-1-hlhfng.png",
+          "sourceKind": "product-model"
+        },
+        {
+          "id": "ref_1774531413044_1hqb54",
+          "name": "448A2122-removebg-preview.png",
+          "mimeType": "image/png",
+          "size": 106269,
+          "relativePath": "product-models/nix/2026/03/26/1774531413047-2-rr6j2k.png",
+          "sourceKind": "product-model"
+        }
+      ],
+      "evaluation": null
+    },
+    {
+      "id": "product_model_1774375236070_rwpuux",
+      "alias": "star",
+      "name": "star",
+      "notes": "manter fidelidade do travesseiro",
+      "createdAt": "2026-03-24T18:00:36.070Z",
+      "updatedAt": "2026-03-24T18:00:36.070Z",
+      "referenceImages": [
+        {
+          "id": "ref_1774375236065_gz14xw",
+          "name": "105A3809.jpg.jpeg",
+          "mimeType": "image/jpeg",
+          "size": 8677476,
+          "relativePath": "product-models/star/2026/03/24/1774375236065-1-l2xzsm.jpg",
+          "sourceKind": "product-model"
+        }
+      ],
+      "evaluation": null
+    },
+    {
+      "id": "product_model_1774375124860_y1xz83",
+      "alias": "adjust",
+      "name": "adjust",
+      "notes": "manter fidelilade",
+      "createdAt": "2026-03-24T17:58:44.860Z",
+      "updatedAt": "2026-03-24T17:59:39.346Z",
+      "referenceImages": [
+        {
+          "id": "ref_1774375124856_f56sxv",
+          "name": "1dc115b2-f40a-4c08-aeb0-16c8f38944d7.png",
+          "mimeType": "image/png",
+          "size": 121253,
+          "relativePath": "product-models/adjust/2026/03/24/1774375124856-1-08pnp3.png",
+          "sourceKind": "product-model"
+        },
+        {
+          "id": "ref_1774375124856_r3nhiu",
+          "name": "ccd4a4a8-db35-4d34-87fe-836cc75463fc.png",
+          "mimeType": "image/png",
+          "size": 104032,
+          "relativePath": "product-models/adjust/2026/03/24/1774375124857-2-qs9lat.png",
+          "sourceKind": "product-model"
+        },
+        {
+          "id": "ref_1774375124856_go6pvs",
+          "name": "9f5cca76-80ae-44dd-99e8-dd9fd1324363.png",
+          "mimeType": "image/png",
+          "size": 101599,
+          "relativePath": "product-models/adjust/2026/03/24/1774375124858-3-qlvr5y.png",
+          "sourceKind": "product-model"
+        },
+        {
+          "id": "ref_1774375124856_q4pxhn",
+          "name": "5ae1a99d-6def-4b97-8d02-7345d534b2b8.png",
+          "mimeType": "image/png",
+          "size": 119257,
+          "relativePath": "product-models/adjust/2026/03/24/1774375124859-4-f9m39u.png",
+          "sourceKind": "product-model"
+        }
+      ],
+      "evaluation": {
+        "status": "ready",
+        "score": 80,
+        "summary": "Modelo bem coberto para reutilizacao, com baixo risco de variar o produto principal.",
+        "strengths": [
+          "Conjunto com variedade inicial de referencias para reduzir variacao na geracao."
+        ],
+        "missing": [
+          "As notas de fidelidade estao fracas ou ausentes."
+        ],
+        "recommendedShots": [
+          "Descreva forma, tecido, costura, etiqueta e o que nunca pode mudar."
+        ],
+        "method": "heuristic",
+        "updatedAt": "2026-03-24T17:59:39.346Z"
+      }
+    }
+  ],
+  "updatedAt": "2026-03-26T13:23:33.054Z"
+}

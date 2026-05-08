@@ -1,0 +1,16 @@
+.env
+node_modules
+dist/
+data/database.sqlite
+data/database.sqlite-journal
+data/database.sqlite-wal
+data/database.sqlite-shm
+generated/
+cutouts/
+crops/
+references/
+uploads/
+!generated/.gitkeep
+!cutouts/.gitkeep
+!crops/.gitkeep
+!references/.gitkeep

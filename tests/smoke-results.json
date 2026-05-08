@@ -1,0 +1,111 @@
+{
+  "total": 21,
+  "failed": 0,
+  "results": [
+    {
+      "name": "GET /api/health retorna status basico",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "GET /api/jobs retorna fila serializada",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "GET /api/usage retorna resumo de uso",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "GET /api/cutouts e /api/crops retornam colecoes",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "CRUD basico de modelos de produto persiste referencias",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "avaliacao de modelo de produto usa modo gratis por padrao",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "CRUD basico de templates visuais persiste configuracao e referencias",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "POST /api/settings atualiza concorrencia",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "POST /api/jobs sem chave configurada falha de forma amigavel",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "DELETE em lote com selecao vazia responde sem erro",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "fluxo: criar job mockado concluido e listar na fila",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "fluxo: remover job individual limpa referencia associada",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "fluxo: salvar crop por endpoint cria item persistido",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "fluxo: salvar crop em pasta ativa persiste caminho aninhado",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "createJob preserva pasta de destino para geracoes futuras",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "fluxo: mover itens selecionados para uma pasta atualiza caminhos",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "fluxo: bulk delete com itens reais remove job e crop",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "persistencia de presets no front carrega e salva corretamente",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "limite de payload grande responde com erro controlado",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "falha controlada para remover fundo com source invalido",
+      "ok": true,
+      "error": null
+    },
+    {
+      "name": "falha controlada para crop com source invalido",
+      "ok": true,
+      "error": null
+    }
+  ]
+}
