@@ -9,11 +9,25 @@ import {
 import { 
   createJob, trimJobs, deleteJob, deleteGalleryJobsBulk, deleteCutoutsBulk, deleteCropsBulk, deleteLibraryBulk 
 } from "./queue.js";
+import { processQueue } from "./queue.js";
 import { 
   createBranchReference, createCutout, createCrop, assignLibraryFolder 
 } from "./media.js";
 import { runBackgroundRemoval } from "./backgroundRemoval.js";
 import * as utils from "./utils.js";
+import { createRequire } from "module";
+const _require = createRequire(import.meta.url);
+const sharpPath = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..', 'node_modules', '@imgly', 'background-removal-node', 'node_modules', 'sharp');
+const sharp = _require(sharpPath);
+
+const {
+  serializeJob, serializeProductModel, serializeImageTemplate,
+  normalizeConcurrency, buildUsageSummary,
+  serveFile, serveAssetFromDir, resolveReferenceAbsolutePath,
+  extractRelativeAssetPath,
+} = utils;
+
+const apiKey = process.env.GEMINI_API_KEY || "";
 
 const router = express.Router();
 
@@ -46,6 +60,38 @@ router.use(async (req, res, next) => {
         queueSize: state.jobs.filter((job) => job.status === "queued").length,
         concurrency: state.concurrency,
       });
+    }
+
+    if (req.method === "GET" && pathname === "/api/thumb") {
+      const src = parsedUrl.query.src || requestUrl.searchParams.get("src");
+      if (!src || typeof src !== 'string' || src.includes('..')) {
+        return res.sendJson(400, { error: "Invalid src parameter" });
+      }
+
+      let targetPath = null;
+      if (src.startsWith('/generated/')) targetPath = path.join(generatedDir, src.replace('/generated/', ''));
+      else if (src.startsWith('/cutouts/')) targetPath = path.join(cutoutsDir, src.replace('/cutouts/', ''));
+      else if (src.startsWith('/crops/')) targetPath = path.join(cropsDir, src.replace('/crops/', ''));
+      else if (src.startsWith('/references/')) targetPath = path.join(referencesDir, src.replace('/references/', ''));
+      else if (src.startsWith('/uploads/')) targetPath = path.join(legacyUploadsDir, src.replace('/uploads/', ''));
+
+      if (!targetPath || !fs.existsSync(targetPath)) {
+        res.status(404).send("Not found");
+        return;
+      }
+
+      try {
+        const thumbBuffer = await sharp(targetPath)
+          .resize({ width: 256, height: 256, fit: 'inside', withoutEnlargement: true })
+          .webp({ quality: 80 })
+          .toBuffer();
+        res.setHeader('Content-Type', 'image/webp');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+        return res.status(200).send(thumbBuffer);
+      } catch (err) {
+        console.error("Thumbnail generation error:", err);
+        return res.sendJson(500, { error: "Failed to generate thumbnail" });
+      }
     }
 
     if (req.method === "GET" && pathname === "/api/jobs") {

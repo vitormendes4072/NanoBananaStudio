@@ -8,7 +8,7 @@ const app = express();
 
 app.use(express.json({ limit: '60mb' }));
 
-app.use('/api', routes);
+app.use('/', routes);
 
 // Static files
 app.use('/generated', express.static(generatedDir));

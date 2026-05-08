@@ -16,7 +16,7 @@ export const state = {
   advancedPromptCollapsed: false
 };
 
-import { normalizeFolderValue, formatDate, formatRelativeDateTime, formatBytes, buildVersionLabel, modelLabel, escapeHtml, fileToBase64, base64ToFile, arrayBufferToBase64, slugifyProductModelAlias, slugifyImageTemplateAlias, clamp } from './utils.js';
+import { normalizeFolderValue, formatDate, formatRelativeDateTime, formatBytes, buildVersionLabel, modelLabel, escapeHtml, fileToBase64, base64ToFile, arrayBufferToBase64, slugifyProductModelAlias, slugifyImageTemplateAlias, clamp, showToast } from './utils.js';
 import {
   form,
   promptInput,
@@ -247,6 +247,11 @@ const MODEL_INFO = {
     shortLabel: "Nano Banana Pro",
   },
 };
+
+function thumbUrl(originalUrl) {
+  if (!originalUrl) return '';
+  return `/api/thumb?src=${encodeURIComponent(originalUrl)}`;
+}
 
 const MAX_REFERENCE_IMAGES = 4;
 const CUSTOM_FOLDERS_STORAGE_KEY = "nano-banana-custom-folders";
@@ -738,7 +743,9 @@ concurrencySelect.addEventListener("change", async () => {
     await refreshJobs();
     await refreshUsage();
   } catch (error) {
-    statusBox.textContent = error instanceof Error ? error.message : "Erro ao atualizar concorrência.";
+    const msg = error instanceof Error ? error.message : "Erro ao atualizar concorrência.";
+    statusBox.textContent = msg;
+    showToast(msg);
   } finally {
     settingsRequestInFlight = false;
   }
@@ -818,7 +825,9 @@ form.addEventListener("submit", async (event) => {
     await refreshUsage();
     await refreshCutouts();
   } catch (error) {
-    setLoading(false, error instanceof Error ? error.message : "Erro desconhecido.");
+    const msg = error instanceof Error ? error.message : "Erro desconhecido.";
+    setLoading(false, msg);
+    showToast(msg);
   }
 });
 
@@ -831,6 +840,7 @@ async function checkHealth() {
     }
   } catch {
   statusBox.textContent = "Não foi possível verificar o servidor.";
+  showToast("Servidor indisponível. Verifique se o backend está rodando.");
   }
 }
 
@@ -1622,7 +1632,7 @@ function renderLibraryUsageHistory(history, label) {
             .map(
               (job) => `
                 <a class="library-usage-history-thumb" href="${job.result.imageUrl}" target="_blank" rel="noreferrer" title="${escapeHtml(buildDisplayPrompt(job))}">
-                  <img src="${job.result.imageUrl}" alt="${escapeHtml(buildDisplayPrompt(job))}">
+                  <img src="${thumbUrl(job.result.imageUrl)}" alt="${escapeHtml(buildDisplayPrompt(job))}">
                 </a>
               `
             )
@@ -2026,7 +2036,9 @@ async function handleBulkRemoval({ button, endpoint, getPayload, confirmMessage,
     updateBulkSelectionUi();
     statusBox.textContent = successMessage;
   } catch (error) {
-    statusBox.textContent = error instanceof Error ? error.message : "Falha ao remover em lote.";
+    const msg = error instanceof Error ? error.message : "Falha ao remover em lote.";
+    statusBox.textContent = msg;
+    showToast(msg);
   } finally {
     button.disabled = false;
     button.textContent = originalLabel;
@@ -2580,8 +2592,9 @@ async function refreshJobs() {
     if (data.concurrency) {
       concurrencySelect.value = String(data.concurrency);
     }
-  } catch {
+  } catch (err) {
     queueSummary.textContent = "Não foi possível atualizar a fila agora.";
+    showToast("Falha ao atualizar a fila. Verifique sua conexão.");
   }
 }
 
@@ -2783,7 +2796,7 @@ function buildJobPreview(job) {
 
   return `
     <a class="queue-preview" href="${job.result.imageUrl}" target="_blank" rel="noreferrer">
-      <img src="${job.result.imageUrl}" alt="${escapeHtml(buildDisplayPrompt(job))}">
+      <img src="${thumbUrl(job.result.imageUrl)}" alt="${escapeHtml(buildDisplayPrompt(job))}">
     </a>
   `;
 }
@@ -2864,7 +2877,7 @@ function createGalleryCard(job) {
   card.innerHTML = `
     ${buildSelectionControl("job", job.id, selectedGalleryIds.has(job.id))}
     <a href="${job.result.imageUrl}" target="_blank" rel="noreferrer">
-      <img src="${job.result.imageUrl}" alt="${escapeHtml(buildDisplayPrompt(job))}">
+      <img src="${thumbUrl(job.result.imageUrl)}" alt="${escapeHtml(buildDisplayPrompt(job))}">
     </a>
     <div class="gallery-body">
       <div class="gallery-copy-row">
@@ -3294,7 +3307,7 @@ function createCutoutCard(item) {
   card.innerHTML = `
     ${buildSelectionControl("cutout", item.id, selectedCutoutIds.has(item.id))}
     <a href="${item.imageUrl}" target="_blank" rel="noreferrer">
-      <img src="${item.imageUrl}" alt="${escapeHtml(item.label || "Recorte sem fundo")}">
+      <img src="${thumbUrl(item.imageUrl)}" alt="${escapeHtml(item.label || "Recorte sem fundo")}">
     </a>
     <div class="gallery-body">
       <div class="gallery-copy-row">
@@ -3356,7 +3369,7 @@ function createCropCard(item) {
   card.innerHTML = `
     ${buildSelectionControl("crop", item.id, selectedCropIds.has(item.id))}
     <a href="${item.imageUrl}" target="_blank" rel="noreferrer">
-      <img src="${item.imageUrl}" alt="${escapeHtml(item.label || "Recorte")}">
+      <img src="${thumbUrl(item.imageUrl)}" alt="${escapeHtml(item.label || "Recorte")}">
     </a>
     <div class="gallery-body">
       <div class="gallery-copy-row">

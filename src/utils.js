@@ -123,3 +123,28 @@ export function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+export function showToast(message, type = 'error') {
+  let container = document.querySelector('.toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  // Auto-remove after 4 seconds
+  setTimeout(() => {
+    toast.classList.add('toast-hiding');
+    toast.addEventListener('animationend', () => {
+      toast.remove();
+      if (container.childNodes.length === 0) {
+        container.remove();
+      }
+    });
+  }, 4000);
+}
