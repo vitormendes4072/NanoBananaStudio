@@ -34,16 +34,16 @@ export const pricingTable = {
   "imagen-3.0-fast-generate-001": 0.03,
 };
 
-export const allowedReferenceMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+export const allowedReferenceMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 export const maxReferenceImages = 4;
 export const maxReferenceBytes = 15 * 1024 * 1024;
 export const maxJsonBodyBytes = 60 * 1024 * 1024;
 
 export const mimeTypes = {
-  ".html": "text/html",
-  ".js": "text/javascript",
-  ".css": "text/css",
-  ".json": "application/json",
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",

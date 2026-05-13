@@ -11,18 +11,34 @@ import {
 } from "./queue.js";
 import { processQueue } from "./queue.js";
 import { 
-  createBranchReference, createCutout, createCrop, assignLibraryFolder 
+  createBranchReference, createCutout, createCrop, assignLibraryFolder,
+  upsertProductModel, upsertImageTemplate, deleteCutout, deleteCrop,
+  deleteProductModel, deleteImageTemplate
 } from "./media.js";
-import { runBackgroundRemoval } from "./backgroundRemoval.js";
+import { removeBackgroundFromReferenceImage } from "./backgroundRemoval.js";
 import * as utils from "./utils.js";
 import { createRequire } from "module";
 const _require = createRequire(import.meta.url);
 const sharpPath = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..', 'node_modules', '@imgly', 'background-removal-node', 'node_modules', 'sharp');
-const sharp = _require(sharpPath);
+let sharp = null;
+
+function getSharp() {
+  if (!sharp) {
+    sharp = _require(sharpPath);
+  }
+
+  return sharp;
+}
 
 const {
   serializeJob, serializeProductModel, serializeImageTemplate,
-  normalizeConcurrency, buildUsageSummary,
+  normalizeConcurrency, normalizeQuantity, normalizePromptOptions,
+  normalizeReferenceImages, normalizeBranchReference,
+  normalizeReferenceUploadForProcessing, normalizeCutoutSource,
+  normalizeCropSource, normalizeIdList, normalizeLibraryFolder,
+  resolveProductModelsByAlias, resolveImageTemplatesByAlias,
+  buildBatchId, pickAllowedValue, buildUsageSummary,
+  storeReferenceImages, evaluateProductModelQuality,
   serveFile, serveAssetFromDir, resolveReferenceAbsolutePath,
   extractRelativeAssetPath,
 } = utils;
@@ -81,7 +97,7 @@ router.use(async (req, res, next) => {
       }
 
       try {
-        const thumbBuffer = await sharp(targetPath)
+        const thumbBuffer = await getSharp()(targetPath)
           .resize({ width: 256, height: 256, fit: 'inside', withoutEnlargement: true })
           .webp({ quality: 80 })
           .toBuffer();

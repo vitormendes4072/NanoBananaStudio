@@ -9,7 +9,7 @@ import {
   port, apiKey, pricingTable, allowedReferenceMimeTypes, 
   maxReferenceImages, maxReferenceBytes, maxJsonBodyBytes, mimeTypes 
 } from "./config.js";
-import { state } from "./state.js";
+import { state, saveProductModel } from "./state.js";
 export function buildImageName({ model, extension }) {
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   return `${stamp}-${model}.${extension}`;
@@ -609,7 +609,7 @@ export async function evaluateProductModelQuality(aliasValue, options = {}) {
     updatedAt: new Date().toISOString(),
   });
   productModel.updatedAt = new Date().toISOString();
-  persistProductModelState();
+  saveProductModel(productModel);
   return productModel;
 }
 
@@ -992,8 +992,8 @@ export function serveFile(res, filePath) {
   if (
     !filePath.startsWith(publicDir) &&
     !filePath.startsWith(generatedDir) &&
-    !filePath.startsWith(state.cutoutsDir) &&
-    !filePath.startsWith(state.cropsDir) &&
+    !filePath.startsWith(cutoutsDir) &&
+    !filePath.startsWith(cropsDir) &&
     !filePath.startsWith(referencesDir) &&
     !filePath.startsWith(legacyUploadsDir)
   ) {
@@ -1087,11 +1087,11 @@ export function resolveImageSourcePath(imageUrl) {
   }
 
   if (pathname.startsWith("/state.cutouts/")) {
-    return resolveAssetPathFromRequest(state.cutoutsDir, pathname, "state.cutouts");
+    return resolveAssetPathFromRequest(cutoutsDir, pathname, "cutouts");
   }
 
   if (pathname.startsWith("/state.crops/")) {
-    return resolveAssetPathFromRequest(state.cropsDir, pathname, "state.crops");
+    return resolveAssetPathFromRequest(cropsDir, pathname, "crops");
   }
 
   return null;
@@ -1173,11 +1173,11 @@ export function hydrateManagedMediaState() {
   }
 
   for (const item of state.cutouts) {
-    normalizeMediaRecordState(item, state.cutoutsDir);
+    normalizeMediaRecordState(item, cutoutsDir);
   }
 
   for (const item of state.crops) {
-    normalizeMediaRecordState(item, state.cropsDir);
+    normalizeMediaRecordState(item, cropsDir);
   }
 }
 
@@ -1205,12 +1205,12 @@ export function normalizeMediaRecordState(item, baseDir) {
 }
 
 export function inferAssetTypeFromBaseDir(baseDir) {
-  if (baseDir === state.cutoutsDir) {
-    return "state.cutouts";
+  if (baseDir === cutoutsDir) {
+    return "cutouts";
   }
 
-  if (baseDir === state.cropsDir) {
-    return "state.crops";
+  if (baseDir === cropsDir) {
+    return "crops";
   }
 
   if (baseDir === referencesDir || baseDir === legacyUploadsDir) {
