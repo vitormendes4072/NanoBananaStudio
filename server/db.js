@@ -3,11 +3,13 @@ import path from 'path';
 import { dataDir } from './config.js';
 import fs from 'fs';
 
-const dbPath = path.join(dataDir, 'database.sqlite');
+const dbPath = process.env.DATABASE_PATH || path.join(dataDir, 'database.sqlite');
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 const db = new Database(dbPath);
 
 // Ativa Write-Ahead Logging para melhor performance de concorrência
-db.pragma('journal_mode = WAL');
+const journalMode = process.env.DATABASE_JOURNAL_MODE || 'WAL';
+db.pragma(`journal_mode = ${journalMode}`);
 
 // Esquema de tabelas
 db.exec(`
@@ -47,3 +49,7 @@ db.exec(`
 `);
 
 export default db;
+
+export function closeDb() {
+  db.close();
+}

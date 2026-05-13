@@ -12,7 +12,7 @@ export const state = {
   
   get concurrency() {
     const row = db.prepare("SELECT value FROM app_settings WHERE key = 'concurrency'").get();
-    return row ? Number(row.value) : 2;
+    return row ? Number(row.value) : Number(process.env.QUEUE_CONCURRENCY || 2);
   },
   set concurrency(val) {
     db.prepare("INSERT INTO app_settings (key, value) VALUES ('concurrency', ?) ON CONFLICT(key) DO UPDATE SET value = ?").run(val, val);

@@ -8,6 +8,18 @@ const app = express();
 
 app.use(express.json({ limit: '60mb' }));
 
+app.use((error, req, res, next) => {
+  if (error?.type === 'entity.too.large') {
+    return res.status(400).json({ error: 'O corpo da requisição passou do limite permitido.' });
+  }
+
+  if (error instanceof SyntaxError && 'body' in error) {
+    return res.status(400).json({ error: 'O corpo da requisição não está em JSON válido.' });
+  }
+
+  return next(error);
+});
+
 app.use('/', routes);
 
 // Static files

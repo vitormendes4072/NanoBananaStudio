@@ -6,7 +6,7 @@ import {
   loadCustomPromptPresetsFromStorage,
   persistCustomPromptPresetsToStorage,
   sanitizePromptOptions,
-} from "../public/prompt-presets-store.js";
+} from "../src/prompt-presets-store.js";
 
 const projectRoot = path.resolve(process.cwd());
 const queueStatePath = path.join(projectRoot, "data", "queue-state.json");
@@ -14,6 +14,7 @@ const cropStatePath = path.join(projectRoot, "data", "crops-state.json");
 const cutoutStatePath = path.join(projectRoot, "data", "cutouts-state.json");
 const productModelStatePath = path.join(projectRoot, "data", "product-models.json");
 const imageTemplateStatePath = path.join(projectRoot, "data", "image-templates.json");
+const testDatabasePath = path.join(projectRoot, "data", `smoke-test-${process.pid}.sqlite`);
 const originalQueueState = fs.existsSync(queueStatePath) ? fs.readFileSync(queueStatePath, "utf8") : null;
 const originalCropState = fs.existsSync(cropStatePath) ? fs.readFileSync(cropStatePath, "utf8") : null;
 const originalCutoutState = fs.existsSync(cutoutStatePath) ? fs.readFileSync(cutoutStatePath, "utf8") : null;
@@ -29,6 +30,9 @@ async function main() {
   process.env.PORT = String(port);
   process.env.GEMINI_API_KEY = "";
   process.env.QUEUE_CONCURRENCY = "1";
+  process.env.DATABASE_PATH = testDatabasePath;
+  process.env.DATABASE_JOURNAL_MODE = "MEMORY";
+  cleanupTestDatabase();
 
   const serverModule = await import("../server.js");
   await serverModule.startServer();
@@ -113,7 +117,7 @@ async function main() {
       });
       assert.equal(deleteResponse.status, 200);
       assert.equal(deleteResponse.body.ok, true);
-      assert.equal(fs.existsSync(imagePath), false);
+      await assertFileMissing(imagePath);
     });
 
     await runTest(results, "avaliacao de modelo de produto usa modo gratis por padrao", async () => {
@@ -204,7 +208,7 @@ async function main() {
       });
       assert.equal(deleteResponse.status, 200);
       assert.equal(deleteResponse.body.ok, true);
-      assert.equal(fs.existsSync(imagePath), false);
+      await assertFileMissing(imagePath);
     });
 
     await runTest(results, "POST /api/settings atualiza concorrencia", async () => {
@@ -308,8 +312,8 @@ async function main() {
 
       assert.equal(response.status, 200);
       assert.equal(response.body.ok, true);
-      assert.equal(fs.existsSync(mock.generatedPath), false);
-      assert.equal(fs.existsSync(mock.referencePath), false);
+      await assertFileMissing(mock.generatedPath);
+      await assertFileMissing(mock.referencePath);
     });
 
     await runTest(results, "fluxo: salvar crop por endpoint cria item persistido", async () => {
@@ -415,7 +419,7 @@ async function main() {
 
       const movedPath = path.join(serverModule.__testUtils.generatedDir, movedJob.result.filename);
       createdFiles.add(movedPath);
-      assert.equal(fs.existsSync(mock.generatedPath), false);
+      await assertFileMissing(mock.generatedPath);
       assert.ok(fs.existsSync(movedPath));
     });
 
@@ -458,9 +462,9 @@ async function main() {
       assert.equal(response.body.removed.gallery, 1);
       assert.equal(response.body.removed.crops, 1);
       assert.equal(response.body.removed.total, 2);
-      assert.equal(fs.existsSync(mock.generatedPath), false);
-      assert.equal(fs.existsSync(mock.referencePath), false);
-      assert.equal(fs.existsSync(cropPath), false);
+      await assertFileMissing(mock.generatedPath);
+      await assertFileMissing(mock.referencePath);
+      await assertFileMissing(cropPath);
     });
 
     await runTest(results, "persistencia de presets no front carrega e salva corretamente", async () => {
@@ -537,6 +541,7 @@ async function main() {
     });
   } finally {
     await serverModule.stopServer();
+    cleanupTestDatabase();
     restoreStateFile(queueStatePath, originalQueueState);
     restoreStateFile(cropStatePath, originalCropState);
     restoreStateFile(cutoutStatePath, originalCutoutState);
@@ -635,10 +640,39 @@ function restoreStateFile(filePath, originalContent) {
   fs.writeFileSync(filePath, originalContent);
 }
 
+async function assertFileMissing(filePath) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    if (!fs.existsSync(filePath)) {
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+
+  assert.equal(fs.existsSync(filePath), false);
+}
+
 function cleanupCreatedFiles() {
   for (const filePath of createdFiles) {
     if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+      try {
+        fs.unlinkSync(filePath);
+      } catch {
+        // Windows can keep image files locked briefly after response streams finish.
+      }
+    }
+  }
+}
+
+function cleanupTestDatabase() {
+  for (const suffix of ["", "-journal", "-wal", "-shm"]) {
+    const filePath = `${testDatabasePath}${suffix}`;
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+      } catch {
+        // The database can remain locked after an import-time failure on Windows.
+      }
     }
   }
 }
@@ -697,7 +731,7 @@ function createMockCompletedJob(serverModule, { promptBase, promptOptions = {}, 
     imageUrl: `/generated/${filename}`,
     localPath: generatedPath,
   };
-  serverModule.__testUtils.persistQueueState();
+  serverModule.__testUtils.saveJob(job);
 
   return { job, generatedPath, referencePath };
 }
@@ -714,6 +748,7 @@ try {
   restoreStateFile(cutoutStatePath, originalCutoutState);
   restoreStateFile(productModelStatePath, originalProductModelState);
   restoreStateFile(imageTemplateStatePath, originalImageTemplateState);
+  cleanupTestDatabase();
   cleanupCreatedFiles();
   process.exitCode = 1;
 }

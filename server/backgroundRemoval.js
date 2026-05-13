@@ -1,12 +1,17 @@
 import fs from "fs";
 import path from "path";
-import { removeBackground } from "@imgly/background-removal-node";
-import { state, persistCutoutState } from "./state.js";
-import { buildImageName } from "./utils.js";
-import { cutoutsDir } from "./config.js";
+import { pathToFileURL } from "url";
+import { mimeTypeToExtension, removeFileIfPresent } from "./utils.js";
+import { dataDir } from "./config.js";
+
+async function removeBackgroundFromFile(inputUrl, options) {
+  const { removeBackground } = await import("@imgly/background-removal-node");
+  return removeBackground(inputUrl, options);
+}
+
 export async function runBackgroundRemoval(inputPath, outputPath) {
   const inputUrl = pathToFileURL(inputPath).href;
-  const blob = await removeBackground(inputUrl, {
+  const blob = await removeBackgroundFromFile(inputUrl, {
     output: {
       format: "image/png",
     },
