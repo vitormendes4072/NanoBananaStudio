@@ -17,6 +17,7 @@ import {
 } from "./media.js";
 import { removeBackgroundFromReferenceImage } from "./backgroundRemoval.js";
 import { addClient, removeClient } from "./sse.js";
+import { generationLimiter, heavyComputeLimiter, libraryLimiter } from "./rateLimits.js";
 import * as utils from "./utils.js";
 import { createRequire } from "module";
 const _require = createRequire(import.meta.url);
@@ -47,6 +48,14 @@ const {
 const apiKey = process.env.GEMINI_API_KEY || "";
 
 const router = express.Router();
+
+router.post("/api/jobs", generationLimiter);
+router.post("/api/cutouts", heavyComputeLimiter);
+router.post("/api/reference-images/remove-background", heavyComputeLimiter);
+router.post("/api/crops", libraryLimiter);
+router.post("/api/product-models", libraryLimiter);
+router.post("/api/image-templates", libraryLimiter);
+router.post(/^\/api\/product-models\/[^/]+\/evaluate$/, libraryLimiter);
 
 router.use(async (req, res, next) => {
   try {
