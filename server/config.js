@@ -14,6 +14,7 @@ export const legacyUploadsDir = path.join(dataDir, "uploads");
 export const referencesDir = path.join(dataDir, "references");
 export const cutoutsDir = path.join(dataDir, "cutouts");
 export const cropsDir = path.join(dataDir, "crops");
+export const thumbsDir = path.join(dataDir, "thumbs");
 
 export const queueStatePath = path.join(dataDir, "queue-state.json");
 export const cutoutStatePath = path.join(dataDir, "cutout-state.json");

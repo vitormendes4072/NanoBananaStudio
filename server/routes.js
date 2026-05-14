@@ -3,8 +3,8 @@ import path from "path";
 import url from "url";
 import express from "express";
 import { state, persistQueueState, saveJob } from "./state.js";
-import { 
-  publicDir, generatedDir, dataDir, cutoutsDir, cropsDir, referencesDir, legacyUploadsDir, maxJsonBodyBytes 
+import {
+  publicDir, generatedDir, dataDir, cutoutsDir, cropsDir, referencesDir, legacyUploadsDir, thumbsDir, maxJsonBodyBytes
 } from "./config.js";
 import { 
   createJob, trimJobs, deleteJob, deleteGalleryJobsBulk, deleteCutoutsBulk, deleteCropsBulk, deleteLibraryBulk 
@@ -90,29 +90,44 @@ router.use(async (req, res, next) => {
 
     if (req.method === "GET" && pathname === "/api/thumb") {
       const src = parsedUrl.query.src || requestUrl.searchParams.get("src");
-      if (!src || typeof src !== 'string' || src.includes('..')) {
+      if (!src || typeof src !== "string" || src.includes("..")) {
         return res.sendJson(400, { error: "Invalid src parameter" });
       }
 
       let targetPath = null;
-      if (src.startsWith('/generated/')) targetPath = path.join(generatedDir, src.replace('/generated/', ''));
-      else if (src.startsWith('/cutouts/')) targetPath = path.join(cutoutsDir, src.replace('/cutouts/', ''));
-      else if (src.startsWith('/crops/')) targetPath = path.join(cropsDir, src.replace('/crops/', ''));
-      else if (src.startsWith('/references/')) targetPath = path.join(referencesDir, src.replace('/references/', ''));
-      else if (src.startsWith('/uploads/')) targetPath = path.join(legacyUploadsDir, src.replace('/uploads/', ''));
+      if (src.startsWith("/generated/")) targetPath = path.join(generatedDir, src.replace("/generated/", ""));
+      else if (src.startsWith("/cutouts/")) targetPath = path.join(cutoutsDir, src.replace("/cutouts/", ""));
+      else if (src.startsWith("/crops/")) targetPath = path.join(cropsDir, src.replace("/crops/", ""));
+      else if (src.startsWith("/references/")) targetPath = path.join(referencesDir, src.replace("/references/", ""));
+      else if (src.startsWith("/uploads/")) targetPath = path.join(legacyUploadsDir, src.replace("/uploads/", ""));
 
       if (!targetPath || !fs.existsSync(targetPath)) {
         res.status(404).send("Not found");
         return;
       }
 
+      const cacheKey = require("crypto").createHash("sha256").update(`${src}:256:256`).digest("hex");
+      const cachePath = path.join(thumbsDir, `${cacheKey}.webp`);
+
+      if (fs.existsSync(cachePath)) {
+        res.setHeader("Content-Type", "image/webp");
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        res.setHeader("X-Thumb-Cache", "HIT");
+        return fs.createReadStream(cachePath).pipe(res);
+      }
+
       try {
         const thumbBuffer = await getSharp()(targetPath)
-          .resize({ width: 256, height: 256, fit: 'inside', withoutEnlargement: true })
+          .resize({ width: 256, height: 256, fit: "inside", withoutEnlargement: true })
           .webp({ quality: 80 })
           .toBuffer();
-        res.setHeader('Content-Type', 'image/webp');
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
+
+        fs.mkdirSync(thumbsDir, { recursive: true });
+        fs.writeFileSync(cachePath, thumbBuffer);
+
+        res.setHeader("Content-Type", "image/webp");
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        res.setHeader("X-Thumb-Cache", "MISS");
         return res.status(200).send(thumbBuffer);
       } catch (err) {
         console.error("Thumbnail generation error:", err);

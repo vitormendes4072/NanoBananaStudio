@@ -5,6 +5,7 @@ data/database.sqlite
 data/database.sqlite-journal
 data/database.sqlite-wal
 data/database.sqlite-shm
+data/thumbs/
 generated/
 cutouts/
 crops/
