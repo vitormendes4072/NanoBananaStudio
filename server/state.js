@@ -72,9 +72,24 @@ export const state = {
 // --- DAO Functions ---
 
 export function saveJob(job) {
-  db.prepare("INSERT INTO jobs (id, status, created_at, data) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET status = ?, data = ?").run(
-    job.id, job.status, job.createdAt, JSON.stringify(job),
-    job.status, JSON.stringify(job)
+  const blob = JSON.stringify(job);
+  db.prepare(`
+    INSERT INTO jobs (id, status, created_at, model, folder, batch_id, finished_at, data)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      status      = excluded.status,
+      model       = excluded.model,
+      folder      = excluded.folder,
+      batch_id    = excluded.batch_id,
+      finished_at = excluded.finished_at,
+      data        = excluded.data
+  `).run(
+    job.id, job.status, job.createdAt,
+    job.model ?? null,
+    job.targetFolder ?? null,
+    job.batchId ?? null,
+    job.finishedAt ?? null,
+    blob
   );
 }
 
@@ -83,7 +98,21 @@ export function deleteJobFromDb(id) {
 }
 
 export function saveCutout(cutout) {
-  db.prepare("INSERT INTO cutouts (id, data) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data = ?").run(cutout.id, JSON.stringify(cutout), JSON.stringify(cutout));
+  const blob = JSON.stringify(cutout);
+  db.prepare(`
+    INSERT INTO cutouts (id, folder, created_at, source_job_id, data)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      folder        = excluded.folder,
+      source_job_id = excluded.source_job_id,
+      data          = excluded.data
+  `).run(
+    cutout.id,
+    cutout.folder ?? null,
+    cutout.createdAt ?? new Date().toISOString(),
+    cutout.sourceJobId ?? null,
+    blob
+  );
 }
 
 export function deleteCutoutFromDb(id) {
@@ -91,7 +120,21 @@ export function deleteCutoutFromDb(id) {
 }
 
 export function saveCrop(crop) {
-  db.prepare("INSERT INTO crops (id, data) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data = ?").run(crop.id, JSON.stringify(crop), JSON.stringify(crop));
+  const blob = JSON.stringify(crop);
+  db.prepare(`
+    INSERT INTO crops (id, folder, created_at, source_job_id, data)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      folder        = excluded.folder,
+      source_job_id = excluded.source_job_id,
+      data          = excluded.data
+  `).run(
+    crop.id,
+    crop.folder ?? null,
+    crop.createdAt ?? new Date().toISOString(),
+    crop.sourceJobId ?? null,
+    blob
+  );
 }
 
 export function deleteCropFromDb(id) {
@@ -99,7 +142,21 @@ export function deleteCropFromDb(id) {
 }
 
 export function saveProductModel(model) {
-  db.prepare("INSERT INTO product_models (alias, data) VALUES (?, ?) ON CONFLICT(alias) DO UPDATE SET data = ?").run(model.alias, JSON.stringify(model), JSON.stringify(model));
+  const blob = JSON.stringify(model);
+  db.prepare(`
+    INSERT INTO product_models (alias, name, created_at, updated_at, data)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(alias) DO UPDATE SET
+      name       = excluded.name,
+      updated_at = excluded.updated_at,
+      data       = excluded.data
+  `).run(
+    model.alias,
+    model.name ?? null,
+    model.createdAt ?? null,
+    model.updatedAt ?? null,
+    blob
+  );
 }
 
 export function deleteProductModelFromDb(alias) {
@@ -107,7 +164,21 @@ export function deleteProductModelFromDb(alias) {
 }
 
 export function saveImageTemplate(template) {
-  db.prepare("INSERT INTO image_templates (alias, data) VALUES (?, ?) ON CONFLICT(alias) DO UPDATE SET data = ?").run(template.alias, JSON.stringify(template), JSON.stringify(template));
+  const blob = JSON.stringify(template);
+  db.prepare(`
+    INSERT INTO image_templates (alias, name, created_at, updated_at, data)
+    VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(alias) DO UPDATE SET
+      name       = excluded.name,
+      updated_at = excluded.updated_at,
+      data       = excluded.data
+  `).run(
+    template.alias,
+    template.name ?? null,
+    template.createdAt ?? null,
+    template.updatedAt ?? null,
+    blob
+  );
 }
 
 export function deleteImageTemplateFromDb(alias) {
@@ -124,8 +195,10 @@ export function persistImageTemplateState() {}
 export async function loadState() {
   migrateFromJsonToSqlite();
   
-  // Revert any jobs left in "processing" to "pending"
-  db.prepare("UPDATE jobs SET status = 'pending' WHERE status = 'processing' OR status = 'queued'").run();
+  // Reset jobs stuck in processing on last crash back to queued
+  db.prepare(
+    "UPDATE jobs SET status = 'queued', data = json_set(data, '$.status', 'queued') WHERE status = 'processing'"
+  ).run();
 }
 
 function migrateFromJsonToSqlite() {

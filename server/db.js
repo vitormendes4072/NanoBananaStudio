@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import { dataDir } from './config.js';
 import fs from 'fs';
+import { runMigrations } from './migrations.js';
 
 const dbPath = process.env.DATABASE_PATH || path.join(dataDir, 'database.sqlite');
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
@@ -10,6 +11,7 @@ const db = new Database(dbPath);
 // Ativa Write-Ahead Logging para melhor performance de concorrência
 const journalMode = process.env.DATABASE_JOURNAL_MODE || 'WAL';
 db.pragma(`journal_mode = ${journalMode}`);
+db.pragma('foreign_keys = ON');
 
 // Esquema de tabelas
 db.exec(`
@@ -47,6 +49,8 @@ db.exec(`
     data TEXT
   );
 `);
+
+runMigrations(db);
 
 export default db;
 
