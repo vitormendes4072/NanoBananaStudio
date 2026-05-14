@@ -3,6 +3,7 @@ import path from "path";
 import url from "url";
 import express from "express";
 import { state, persistQueueState, saveJob } from "./state.js";
+import db from "./db.js";
 import {
   publicDir, generatedDir, dataDir, cutoutsDir, cropsDir, referencesDir, legacyUploadsDir, thumbsDir, maxJsonBodyBytes
 } from "./config.js";
@@ -39,7 +40,7 @@ const {
   normalizeReferenceUploadForProcessing, normalizeCutoutSource,
   normalizeCropSource, normalizeIdList, normalizeLibraryFolder,
   resolveProductModelsByAlias, resolveImageTemplatesByAlias,
-  buildBatchId, pickAllowedValue, buildUsageSummary,
+  buildBatchId, pickAllowedValue, buildUsageSummary, buildAnalytics,
   storeReferenceImages, evaluateProductModelQuality,
   serveFile, serveAssetFromDir, resolveReferenceAbsolutePath,
   extractRelativeAssetPath,
@@ -159,6 +160,10 @@ router.use(async (req, res, next) => {
 
     if (req.method === "GET" && pathname === "/api/usage") {
       return res.sendJson( 200, buildUsageSummary());
+    }
+
+    if (req.method === "GET" && pathname === "/api/analytics") {
+      return res.sendJson(200, buildAnalytics(db));
     }
 
     if (req.method === "GET" && pathname === "/api/cutouts") {

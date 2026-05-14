@@ -104,3 +104,5 @@ export const folderDialogOptions = document.querySelector("#folder-dialog-option
 export const folderDialogClearButton = document.querySelector("#folder-dialog-clear");
 export const folderDialogCancelButton = document.querySelector("#folder-dialog-cancel");
 export const folderDialogConfirmButton = document.querySelector("#folder-dialog-confirm");
+export const analyticsSummary = document.querySelector("#analytics-summary");
+export const analyticsCharts = document.querySelector("#analytics-charts");
