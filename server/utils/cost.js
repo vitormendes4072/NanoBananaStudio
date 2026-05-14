@@ -290,6 +290,63 @@ export async function evaluateProductModelWithGemini(productModel) {
   });
 }
 
+export function buildAnalytics(db) {
+  const PERIOD_DAYS = 30;
+
+  const dailyRows = db.prepare(`
+    SELECT substr(finished_at, 1, 10) AS date, model, COUNT(*) AS count
+    FROM jobs
+    WHERE status = 'completed'
+      AND finished_at IS NOT NULL
+      AND finished_at >= date('now', '-${PERIOD_DAYS} days')
+    GROUP BY date, model
+    ORDER BY date
+  `).all();
+
+  const modelRows = db.prepare(`
+    SELECT model, COUNT(*) AS count
+    FROM jobs
+    WHERE status = 'completed'
+      AND model IS NOT NULL
+    GROUP BY model
+    ORDER BY count DESC
+  `).all();
+
+  const dailyByDate = {};
+  for (const row of dailyRows) {
+    if (!dailyByDate[row.date]) {
+      dailyByDate[row.date] = { date: row.date, count: 0, cost: 0 };
+    }
+    const unitCost = pricingTable[row.model] ?? 0;
+    dailyByDate[row.date].count += row.count;
+    dailyByDate[row.date].cost += unitCost * row.count;
+  }
+  const dailyCosts = Object.values(dailyByDate).sort((a, b) => a.date.localeCompare(b.date));
+
+  const byModel = modelRows.map((row) => {
+    const unitCost = pricingTable[row.model] ?? 0;
+    return {
+      model: row.model,
+      label: row.model,
+      count: row.count,
+      cost: unitCost * row.count,
+      unitCost,
+    };
+  });
+
+  const periodCost = byModel.reduce((s, m) => s + m.cost, 0);
+  const periodCount = byModel.reduce((s, m) => s + m.count, 0);
+
+  return {
+    ok: true,
+    periodDays: PERIOD_DAYS,
+    periodCost,
+    periodCount,
+    dailyCosts,
+    byModel,
+  };
+}
+
 export async function evaluateProductModelQuality(aliasValue, options = {}) {
   const alias = normalizeProductModelAlias(aliasValue);
   const productModel = state.productModelsByAlias.get(alias);
