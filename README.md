@@ -8,8 +8,25 @@
 
 ## Screenshots
 
-> Add screenshots here after running the application.
-> Recommended captures: main generation panel · image gallery · background removal (before/after) · product models panel.
+**Usage dashboard** — real-time cost tracking per model, with total and daily breakdowns.
+
+![Usage dashboard](docs/screenshots/1-usage-dashboard.png)
+
+**Prompt panel + Advanced controls** — style presets, aspect ratio, negative prompt, custom prompt options.
+
+![Prompt panel](docs/screenshots/2-prompt-panel.png)
+
+**Biblioteca Criativa** — reusable product models and visual templates, referenced in prompts via `@alias` / `#alias`.
+
+![Biblioteca Criativa](docs/screenshots/3-biblioteca-criativa.png)
+
+**Queue + Gallery filters** — search, model filter, folder filter, and bulk operations toolbar.
+
+![Generation controls](docs/screenshots/4-generation-controls.png)
+
+**Gallery** — 12 of 49 generated images visible, with folder and model filters.
+
+![Gallery with generated images](docs/screenshots/5-gallery.png)
 
 ---
 
