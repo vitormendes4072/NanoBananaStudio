@@ -311,7 +311,7 @@ const PROMPT_PRESETS = {
   },
 };
 
-let pollTimer = null;
+let slowPollTimer = null;
 let lastRenderedJobsKey = "";
 let lastRenderedCutoutsKey = "";
 let lastRenderedCropsKey = "";
@@ -364,7 +364,7 @@ renderCustomPromptPresets();
 syncAdvancedPromptCollapsedState();
 bindSectionCollapseActions();
 syncSectionCollapsedState();
-startPolling();
+connectSSE();
 requestComposerPanelPinning();
 
 searchInput.addEventListener("input", () => renderJobs(state.lastJobs));
@@ -2677,13 +2677,35 @@ async function refreshCrops() {
   }
 }
 
-function startPolling() {
-  pollTimer = window.setInterval(async () => {
-    await refreshJobs();
-    await refreshUsage();
-    await refreshCutouts();
-    await refreshCrops();
-  }, 2000);
+function connectSSE() {
+  const es = new EventSource("/api/jobs/stream");
+
+  es.addEventListener("jobs:update", () => {
+    refreshJobs();
+    refreshUsage();
+  });
+
+  es.onerror = () => {
+    // EventSource reconecta automaticamente após o retry (3s) definido no servidor.
+    // Ativa um slow-poll de fallback para cutouts/crops enquanto SSE está fora.
+    if (!slowPollTimer) {
+      slowPollTimer = window.setInterval(async () => {
+        await refreshCutouts();
+        await refreshCrops();
+      }, 10000);
+    }
+  };
+
+  es.onopen = () => {
+    if (slowPollTimer) {
+      clearInterval(slowPollTimer);
+      slowPollTimer = null;
+    }
+    refreshJobs();
+    refreshUsage();
+    refreshCutouts();
+    refreshCrops();
+  };
 }
 
 function renderJobs(jobs) {

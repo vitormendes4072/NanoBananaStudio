@@ -16,6 +16,7 @@ import {
   deleteProductModel, deleteImageTemplate
 } from "./media.js";
 import { removeBackgroundFromReferenceImage } from "./backgroundRemoval.js";
+import { addClient, removeClient } from "./sse.js";
 import * as utils from "./utils.js";
 import { createRequire } from "module";
 const _require = createRequire(import.meta.url);
@@ -108,6 +109,19 @@ router.use(async (req, res, next) => {
         console.error("Thumbnail generation error:", err);
         return res.sendJson(500, { error: "Failed to generate thumbnail" });
       }
+    }
+
+    if (req.method === "GET" && pathname === "/api/jobs/stream") {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",
+      });
+      res.write("retry: 3000\n\n");
+      addClient(res);
+      req.on("close", () => removeClient(res));
+      return;
     }
 
     if (req.method === "GET" && pathname === "/api/jobs") {

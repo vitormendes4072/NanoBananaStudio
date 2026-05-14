@@ -6,6 +6,7 @@ import {
   normalizeJobProductModels, normalizeJobImageTemplates, normalizeLibraryFolder
 } from "./utils.js";
 import { generateImage } from "./gemini.js";
+import { broadcast } from "./sse.js";
 
 export function createJob({
   prompt,
@@ -43,6 +44,7 @@ export function createJob({
 
   saveJob(job);
   trimJobs();
+  broadcast("jobs:update");
   return job;
 }
 
@@ -58,6 +60,7 @@ export async function processQueue() {
     nextJob.status = "processing";
     nextJob.startedAt = new Date().toISOString();
     saveJob(nextJob);
+    broadcast("jobs:update");
 
     runJob(nextJob);
   }
@@ -76,6 +79,7 @@ export async function runJob(job) {
   } finally {
     state.activeJobIds.delete(job.id);
     saveJob(job);
+    broadcast("jobs:update");
     processQueue();
   }
 }
