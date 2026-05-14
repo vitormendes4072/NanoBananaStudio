@@ -17,7 +17,8 @@
     "@imgly/background-removal": "^1.7.0",
     "@imgly/background-removal-node": "^1.4.5",
     "better-sqlite3": "^12.9.0",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2"
   },
   "devDependencies": {
     "acorn": "^8.16.0",
