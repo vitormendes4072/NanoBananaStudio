@@ -2366,6 +2366,37 @@ button:disabled {
   padding: 14px 2px;
 }
 
+.gallery-onboarding {
+  padding: 40px 16px;
+  text-align: center;
+}
+
+.gallery-onboarding-title {
+  margin: 0 0 20px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.gallery-onboarding-steps {
+  display: inline-block;
+  text-align: left;
+  margin: 0 0 16px;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 2;
+}
+
+.gallery-onboarding-steps strong {
+  color: var(--text);
+}
+
+.gallery-onboarding-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
 @media (max-width: 900px) {
   .shell {
     width: min(calc(100% - 20px), 1180px);

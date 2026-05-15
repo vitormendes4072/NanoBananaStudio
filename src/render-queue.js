@@ -262,7 +262,8 @@ function queueEmptyMessage() {
   return "Nenhum job corresponde aos filtros atuais. Limpe os filtros ou troque o modelo para voltar a navegar pela fila.";
 }
 
-function galleryEmptyMessage() {
+function galleryEmptyMessage(allCompletedJobs) {
+  if (!allCompletedJobs.length) return "Nenhuma imagem concluída ainda. Aguarde os jobs em processamento terminarem.";
   if (galleryFilter.value === "gemini-3-pro-image-preview") return "Nenhuma imagem do Nano Banana Pro foi encontrada no histórico atual.";
   if (galleryFilter.value === "gemini-2.5-flash-image") return "Nenhuma imagem do Nano Banana foi encontrada no histórico atual.";
   return "Nenhuma imagem corresponde aos filtros atuais. Limpe os filtros ou gere um novo lote para preencher a galeria.";
@@ -284,13 +285,26 @@ function updateStatusFromVisibleResults(filteredGalleryJobs) {
   if (!submitButton.disabled) statusBox.textContent = "Pronto para enfileirar.";
 }
 
-export function renderGallery(completedJobs) {
+export function renderGallery(completedJobs, allJobs = [], allCompletedJobs = []) {
   deps.pruneSelectionSet(selectedGalleryIds, completedJobs.map((job) => job.id));
   deps.updateBulkSelectionUi();
 
   if (!completedJobs.length) {
     gallerySummary.textContent = "0 imagens visiveis";
-    galleryGrid.innerHTML = `<p class="empty-state">${galleryEmptyMessage()}</p>`;
+    if (allJobs.length === 0) {
+      galleryGrid.innerHTML = `
+        <div class="gallery-onboarding">
+          <p class="gallery-onboarding-title">Bem-vindo ao Nano Banana Studio</p>
+          <ol class="gallery-onboarding-steps">
+            <li>Digite um <strong>prompt</strong> descrevendo a imagem desejada</li>
+            <li>Escolha o <strong>modelo</strong> no painel lateral</li>
+            <li>Clique em <strong>Enfileirar</strong> para iniciar a geração</li>
+          </ol>
+          <p class="gallery-onboarding-hint">As imagens geradas aparecerão aqui quando concluídas.</p>
+        </div>`;
+    } else {
+      galleryGrid.innerHTML = `<p class="empty-state">${galleryEmptyMessage(allCompletedJobs)}</p>`;
+    }
     return;
   }
 
@@ -318,7 +332,8 @@ export function renderJobs(jobs) {
   });
   const nextKey = JSON.stringify(jobs.map((job) => [job.id, job.status, job.result?.filename || "", job.result?.folder || "", job.error?.error || ""]));
   const renderKey = `${nextKey}::${filterState}`;
-  const filteredGalleryJobs = filterGalleryJobs(jobs.filter((job) => job.status === "completed" && job.result));
+  const allCompletedJobs = jobs.filter((job) => job.status === "completed" && job.result);
+  const filteredGalleryJobs = filterGalleryJobs(allCompletedJobs);
   const filteredQueueJobs = filterQueueJobs(jobs);
 
   if (renderKey === lastRenderedJobsKey) {
@@ -353,7 +368,7 @@ export function renderJobs(jobs) {
     }
   }
 
-  renderGallery(filteredGalleryJobs);
+  renderGallery(filteredGalleryJobs, jobs, allCompletedJobs);
   updateStatusFromVisibleResults(filteredGalleryJobs);
   deps.renderFolderBoard();
   deps.bindInteractiveActions();
