@@ -7,6 +7,7 @@ import { processQueue as startQueue } from './queue.js';
 
 const app = express();
 
+// CSP desabilitado: o frontend usa blob: URLs (createObjectURL) que o CSP padrão do helmet bloquearia.
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: '60mb' }));
 
