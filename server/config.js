@@ -1,3 +1,4 @@
+// @ts-check
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
@@ -22,9 +23,13 @@ export const cropStatePath = path.join(dataDir, "crop-state.json");
 export const productModelStatePath = path.join(dataDir, "product-models-state.json");
 export const imageTemplateStatePath = path.join(dataDir, "image-templates-state.json");
 
+/** @type {number} */
 export const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+/** @type {string | undefined} */
 export const apiKey = process.env.GEMINI_API_KEY;
 
+/** @type {Record<string, number>} Cost in USD per generated image */
 export const pricingTable = {
   "gemini-2.5-flash": 0.0000001,
   "gemini-2.5-pro": 0.000002,
@@ -35,11 +40,19 @@ export const pricingTable = {
   "imagen-3.0-fast-generate-001": 0.03,
 };
 
+/** @type {Set<string>} */
 export const allowedReferenceMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+/** @type {number} Maximum number of reference images per job */
 export const maxReferenceImages = 4;
+
+/** @type {number} Maximum size in bytes per reference image (15 MB) */
 export const maxReferenceBytes = 15 * 1024 * 1024;
+
+/** @type {number} Maximum JSON body size in bytes (60 MB) */
 export const maxJsonBodyBytes = 60 * 1024 * 1024;
 
+/** @type {Record<string, string>} */
 export const mimeTypes = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
