@@ -3,7 +3,6 @@ import { state } from "./state.js";
 import { showToast } from "./utils.js";
 import { queueSummary, concurrencySelect, cutoutSummary, cutoutFolderFilter, cropSummary, viewModeSelect, usageSummary, productModelList, imageTemplateList } from "./dom.js";
 
-let pollTimer = null;
 let lastRenderedCutoutsKey = "";
 let lastRenderedCropsKey = "";
 
@@ -99,10 +98,17 @@ export async function refreshImageTemplates() {
   deps.updatePromptAutocomplete();
 }
 
-export function startPolling() {
-  pollTimer = window.setInterval(async () => {
-    await refreshJobs(); await refreshUsage(); await refreshCutouts(); await refreshCrops();
-  }, 2000);
+export function connectSSE() {
+  const source = new EventSource("/api/jobs/stream");
+
+  source.addEventListener("jobs:update", () => {
+    refreshJobs();
+    refreshUsage();
+  });
+
+  source.onerror = () => {
+    // EventSource reconnects automatically via the retry interval set by the server
+  };
 }
 
 deps.refreshJobs = refreshJobs;
@@ -111,4 +117,4 @@ deps.refreshCutouts = refreshCutouts;
 deps.refreshCrops = refreshCrops;
 deps.refreshProductModels = refreshProductModels;
 deps.refreshImageTemplates = refreshImageTemplates;
-deps.startPolling = startPolling;
+deps.connectSSE = connectSSE;
