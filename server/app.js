@@ -2,7 +2,7 @@ import express from 'express';
 import helmet from 'helmet';
 import { publicDir, generatedDir, dataDir } from './config.js';
 import { loadState } from './state.js';
-import routes from './routes.js';
+import routes from './routes/index.js';
 import { processQueue as startQueue } from './queue.js';
 
 const app = express();
@@ -34,6 +34,12 @@ app.use('/uploads', express.static(dataDir + '/uploads'));
 app.use(express.static(publicDir));
 app.use((req, res) => {
   res.sendFile(publicDir + '/index.html');
+});
+
+// eslint-disable-next-line no-unused-vars
+app.use((error, req, res, next) => {
+  const status = error.status || error.statusCode || 500;
+  res.status(status).json({ error: error.message || 'Erro interno do servidor.' });
 });
 
 export async function startServer(port) {
