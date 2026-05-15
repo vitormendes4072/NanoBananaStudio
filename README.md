@@ -1,5 +1,7 @@
 # Nano Banana Studio
 
+[![Smoke Tests](https://github.com/vitormendes4072/NanoBananaStudio/actions/workflows/smoke.yml/badge.svg)](https://github.com/vitormendes4072/NanoBananaStudio/actions/workflows/smoke.yml)
+
 **AI-powered product photography platform** — generate, edit, and manage product images at scale using Google Gemini, with on-device background removal and a full asset management pipeline.
 
 > Built entirely without frontend frameworks: Vanilla JS + Vanilla CSS + Vite, backed by Node.js, Express 5, and SQLite.
