@@ -1,4 +1,5 @@
 import express from 'express';
+import helmet from 'helmet';
 import { publicDir, generatedDir, dataDir } from './config.js';
 import { loadState } from './state.js';
 import routes from './routes.js';
@@ -6,6 +7,7 @@ import { processQueue as startQueue } from './queue.js';
 
 const app = express();
 
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: '60mb' }));
 
 app.use((error, req, res, next) => {
