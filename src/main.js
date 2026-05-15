@@ -89,7 +89,7 @@ import {
   refreshCrops,
   refreshProductModels,
   refreshImageTemplates,
-  startPolling,
+  connectSSE,
 } from "./api.js";
 import { refreshAnalytics } from "./render-analytics.js";
 
@@ -155,7 +155,7 @@ async function refreshInitialData() {
     refreshProductModels(),
     refreshImageTemplates(),
   ]);
-  startPolling();
+  connectSSE();
 }
 
 function bindPromptEvents() {
