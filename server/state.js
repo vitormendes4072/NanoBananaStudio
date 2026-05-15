@@ -1,9 +1,17 @@
+// @ts-check
 import fs from "fs";
 import db from "./db.js";
-import { 
-  queueStatePath, cutoutStatePath, cropStatePath, 
-  productModelStatePath, imageTemplateStatePath 
+import {
+  queueStatePath, cutoutStatePath, cropStatePath,
+  productModelStatePath, imageTemplateStatePath
 } from "./config.js";
+
+/** @typedef {import('./types.js').Job} Job */
+/** @typedef {import('./types.js').Cutout} Cutout */
+/** @typedef {import('./types.js').Crop} Crop */
+/** @typedef {import('./types.js').ProductModel} ProductModel */
+/** @typedef {import('./types.js').ImageTemplate} ImageTemplate */
+/** @typedef {import('./types.js').QueueState} QueueState */
 
 export const state = {
   activeJobIds: new Set(),
@@ -71,6 +79,9 @@ export const state = {
 
 // --- DAO Functions ---
 
+/**
+ * @param {Job} job
+ */
 export function saveJob(job) {
   const blob = JSON.stringify(job);
   db.prepare(`
@@ -93,10 +104,14 @@ export function saveJob(job) {
   );
 }
 
+/** @param {number} id */
 export function deleteJobFromDb(id) {
   db.prepare("DELETE FROM jobs WHERE id = ?").run(id);
 }
 
+/**
+ * @param {Cutout} cutout
+ */
 export function saveCutout(cutout) {
   const blob = JSON.stringify(cutout);
   db.prepare(`
@@ -115,10 +130,14 @@ export function saveCutout(cutout) {
   );
 }
 
+/** @param {string} id */
 export function deleteCutoutFromDb(id) {
   db.prepare("DELETE FROM cutouts WHERE id = ?").run(id);
 }
 
+/**
+ * @param {Crop} crop
+ */
 export function saveCrop(crop) {
   const blob = JSON.stringify(crop);
   db.prepare(`
@@ -137,10 +156,14 @@ export function saveCrop(crop) {
   );
 }
 
+/** @param {string} id */
 export function deleteCropFromDb(id) {
   db.prepare("DELETE FROM crops WHERE id = ?").run(id);
 }
 
+/**
+ * @param {ProductModel} model
+ */
 export function saveProductModel(model) {
   const blob = JSON.stringify(model);
   db.prepare(`
@@ -159,10 +182,14 @@ export function saveProductModel(model) {
   );
 }
 
+/** @param {string} alias */
 export function deleteProductModelFromDb(alias) {
   db.prepare("DELETE FROM product_models WHERE alias = ?").run(alias);
 }
 
+/**
+ * @param {ImageTemplate} template
+ */
 export function saveImageTemplate(template) {
   const blob = JSON.stringify(template);
   db.prepare(`
@@ -181,6 +208,7 @@ export function saveImageTemplate(template) {
   );
 }
 
+/** @param {string} alias */
 export function deleteImageTemplateFromDb(alias) {
   db.prepare("DELETE FROM image_templates WHERE alias = ?").run(alias);
 }
