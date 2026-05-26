@@ -1,0 +1,20 @@
+# Build output
+dist/
+
+# Dependencies
+node_modules/
+
+# Runtime / user data
+data/
+generated/
+cutouts/
+crops/
+references/
+uploads/
+public/
+
+# Internal tooling
+.claude/
+
+# Lock files (let npm manage these)
+package-lock.json

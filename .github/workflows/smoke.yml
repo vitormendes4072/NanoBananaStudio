@@ -22,5 +22,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Build frontend
+        run: npm run build
+
       - name: Run smoke tests
         run: npm run test:smoke

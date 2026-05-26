@@ -10,7 +10,10 @@ function setVersion(db, v) {
 }
 
 function addColumnIfMissing(db, table, column, type) {
-  const exists = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
+  const exists = db
+    .prepare(`PRAGMA table_info(${table})`)
+    .all()
+    .some((c) => c.name === column);
   if (!exists) {
     db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`).run();
   }
@@ -18,66 +21,76 @@ function addColumnIfMissing(db, table, column, type) {
 
 function migration_v1(db) {
   db.transaction(() => {
-    addColumnIfMissing(db, "jobs", "model", "TEXT");
-    addColumnIfMissing(db, "jobs", "folder", "TEXT");
-    addColumnIfMissing(db, "jobs", "batch_id", "TEXT");
-    addColumnIfMissing(db, "jobs", "finished_at", "TEXT");
+    addColumnIfMissing(db, 'jobs', 'model', 'TEXT');
+    addColumnIfMissing(db, 'jobs', 'folder', 'TEXT');
+    addColumnIfMissing(db, 'jobs', 'batch_id', 'TEXT');
+    addColumnIfMissing(db, 'jobs', 'finished_at', 'TEXT');
 
-    addColumnIfMissing(db, "cutouts", "folder", "TEXT");
-    addColumnIfMissing(db, "cutouts", "created_at", "TEXT");
-    addColumnIfMissing(db, "cutouts", "source_job_id", "TEXT");
+    addColumnIfMissing(db, 'cutouts', 'folder', 'TEXT');
+    addColumnIfMissing(db, 'cutouts', 'created_at', 'TEXT');
+    addColumnIfMissing(db, 'cutouts', 'source_job_id', 'TEXT');
 
-    addColumnIfMissing(db, "crops", "folder", "TEXT");
-    addColumnIfMissing(db, "crops", "created_at", "TEXT");
-    addColumnIfMissing(db, "crops", "source_job_id", "TEXT");
+    addColumnIfMissing(db, 'crops', 'folder', 'TEXT');
+    addColumnIfMissing(db, 'crops', 'created_at', 'TEXT');
+    addColumnIfMissing(db, 'crops', 'source_job_id', 'TEXT');
 
-    addColumnIfMissing(db, "product_models", "name", "TEXT");
-    addColumnIfMissing(db, "product_models", "created_at", "TEXT");
-    addColumnIfMissing(db, "product_models", "updated_at", "TEXT");
+    addColumnIfMissing(db, 'product_models', 'name', 'TEXT');
+    addColumnIfMissing(db, 'product_models', 'created_at', 'TEXT');
+    addColumnIfMissing(db, 'product_models', 'updated_at', 'TEXT');
 
-    addColumnIfMissing(db, "image_templates", "name", "TEXT");
-    addColumnIfMissing(db, "image_templates", "created_at", "TEXT");
-    addColumnIfMissing(db, "image_templates", "updated_at", "TEXT");
+    addColumnIfMissing(db, 'image_templates', 'name', 'TEXT');
+    addColumnIfMissing(db, 'image_templates', 'created_at', 'TEXT');
+    addColumnIfMissing(db, 'image_templates', 'updated_at', 'TEXT');
 
     // Backfill existing rows from JSON blobs
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE jobs SET
         model       = json_extract(data, '$.model'),
         folder      = json_extract(data, '$.targetFolder'),
         batch_id    = json_extract(data, '$.batchId'),
         finished_at = json_extract(data, '$.finishedAt')
       WHERE model IS NULL
-    `).run();
+    `
+    ).run();
 
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE cutouts SET
         folder        = json_extract(data, '$.folder'),
         source_job_id = json_extract(data, '$.sourceJobId')
       WHERE folder IS NULL
-    `).run();
+    `
+    ).run();
 
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE crops SET
         folder        = json_extract(data, '$.folder'),
         source_job_id = json_extract(data, '$.sourceJobId')
       WHERE folder IS NULL
-    `).run();
+    `
+    ).run();
 
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE product_models SET
         name       = json_extract(data, '$.name'),
         created_at = json_extract(data, '$.createdAt'),
         updated_at = json_extract(data, '$.updatedAt')
       WHERE name IS NULL
-    `).run();
+    `
+    ).run();
 
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE image_templates SET
         name       = json_extract(data, '$.name'),
         created_at = json_extract(data, '$.createdAt'),
         updated_at = json_extract(data, '$.updatedAt')
       WHERE name IS NULL
-    `).run();
+    `
+    ).run();
 
     db.exec(`
       CREATE INDEX IF NOT EXISTS idx_jobs_model       ON jobs(model);

@@ -5,35 +5,41 @@ import {
   normalizeLibraryFolder,
   pickAllowedValue,
   normalizeStringList,
-} from "./validation.js";
-import { resolveReferenceAbsolutePath, buildAssetUrl } from "./files.js";
+} from './validation.js';
+import { resolveReferenceAbsolutePath, buildAssetUrl } from './files.js';
 
 export function normalizeJobError(error) {
-  if (error && typeof error === "object" && "error" in error) {
+  if (error && typeof error === 'object' && 'error' in error) {
     return error;
   }
 
   return {
-    errorType: "generic",
-    error: error instanceof Error ? error.message : "Erro interno no job.",
-    title: "Falha ao gerar imagem",
-    userMessage: error instanceof Error ? error.message : "Erro interno no job.",
+    errorType: 'generic',
+    error: error instanceof Error ? error.message : 'Erro interno no job.',
+    title: 'Falha ao gerar imagem',
+    userMessage: error instanceof Error ? error.message : 'Erro interno no job.',
   };
 }
 
 export function normalizeProductModelEvaluation(value) {
-  if (!value || typeof value !== "object") {
+  if (!value || typeof value !== 'object') {
     return null;
   }
 
-  const status = pickAllowedValue(value.status, ["ready", "improvable", "insufficient"], "improvable");
+  const status = pickAllowedValue(
+    value.status,
+    ['ready', 'improvable', 'insufficient'],
+    'improvable'
+  );
   const score = Math.min(Math.max(Number(value.score) || 0, 0), 100);
-  const summary = String(value.summary || "").trim().slice(0, 240);
+  const summary = String(value.summary || '')
+    .trim()
+    .slice(0, 240);
   const strengths = normalizeStringList(value.strengths, 4, 140);
   const missing = normalizeStringList(value.missing, 5, 160);
   const recommendedShots = normalizeStringList(value.recommendedShots, 5, 160);
-  const method = pickAllowedValue(value.method, ["gemini", "heuristic"], "heuristic");
-  const updatedAt = String(value.updatedAt || "").trim() || null;
+  const method = pickAllowedValue(value.method, ['gemini', 'heuristic'], 'heuristic');
+  const updatedAt = String(value.updatedAt || '').trim() || null;
 
   if (!summary && !strengths.length && !missing.length && !recommendedShots.length) {
     return null;
@@ -58,7 +64,7 @@ export function normalizeJobProductModels(value) {
 
   return value
     .map((entry) => {
-      if (!entry || typeof entry !== "object") {
+      if (!entry || typeof entry !== 'object') {
         return null;
       }
 
@@ -70,7 +76,9 @@ export function normalizeJobProductModels(value) {
       return {
         alias,
         name: String(entry.name || alias).trim() || alias,
-        notes: String(entry.notes || "").trim().slice(0, 500),
+        notes: String(entry.notes || '')
+          .trim()
+          .slice(0, 500),
       };
     })
     .filter(Boolean);
@@ -83,7 +91,7 @@ export function normalizeJobImageTemplates(value) {
 
   return value
     .map((entry) => {
-      if (!entry || typeof entry !== "object") {
+      if (!entry || typeof entry !== 'object') {
         return null;
       }
 
@@ -95,7 +103,9 @@ export function normalizeJobImageTemplates(value) {
       return {
         alias,
         name: String(entry.name || alias).trim() || alias,
-        notes: String(entry.notes || "").trim().slice(0, 500),
+        notes: String(entry.notes || '')
+          .trim()
+          .slice(0, 500),
         promptOptions: normalizePromptOptions(entry.promptOptions),
       };
     })
@@ -105,16 +115,20 @@ export function normalizeJobImageTemplates(value) {
 export function buildJobProductModelMeta(entry) {
   return {
     alias: normalizeProductModelAlias(entry.alias),
-    name: String(entry.name || entry.alias || "Modelo").trim() || "Modelo",
-    notes: String(entry.notes || "").trim().slice(0, 500),
+    name: String(entry.name || entry.alias || 'Modelo').trim() || 'Modelo',
+    notes: String(entry.notes || '')
+      .trim()
+      .slice(0, 500),
   };
 }
 
 export function buildJobImageTemplateMeta(entry) {
   return {
     alias: normalizeImageTemplateAlias(entry.alias),
-    name: String(entry.name || entry.alias || "Template").trim() || "Template",
-    notes: String(entry.notes || "").trim().slice(0, 500),
+    name: String(entry.name || entry.alias || 'Template').trim() || 'Template',
+    notes: String(entry.notes || '')
+      .trim()
+      .slice(0, 500),
     promptOptions: normalizePromptOptions(entry.promptOptions),
   };
 }
@@ -129,9 +143,9 @@ export function serializeReferenceImages(referenceImages = []) {
       mimeType: image.mimeType,
       size: image.size,
       sourceJobId: image.sourceJobId || null,
-      sourceKind: image.sourceKind || "upload",
+      sourceKind: image.sourceKind || 'upload',
       isAvailable,
-      url: isAvailable ? buildAssetUrl("references", image.relativePath) : null,
+      url: isAvailable ? buildAssetUrl('references', image.relativePath) : null,
     };
   });
 }
@@ -165,10 +179,12 @@ export function serializeProductModel(productModel) {
     alias: productModel.alias,
     mention: `@${productModel.alias}`,
     name: productModel.name,
-    notes: productModel.notes || "",
+    notes: productModel.notes || '',
     createdAt: productModel.createdAt,
     updatedAt: productModel.updatedAt || productModel.createdAt,
-    referenceCount: Array.isArray(productModel.referenceImages) ? productModel.referenceImages.length : 0,
+    referenceCount: Array.isArray(productModel.referenceImages)
+      ? productModel.referenceImages.length
+      : 0,
     referenceImages: serializeReferenceImages(productModel.referenceImages || []),
     evaluation: normalizeProductModelEvaluation(productModel.evaluation),
   };
@@ -180,17 +196,19 @@ export function serializeImageTemplate(imageTemplate) {
     alias: imageTemplate.alias,
     mention: `#${imageTemplate.alias}`,
     name: imageTemplate.name,
-    notes: imageTemplate.notes || "",
+    notes: imageTemplate.notes || '',
     promptOptions: normalizePromptOptions(imageTemplate.promptOptions),
     createdAt: imageTemplate.createdAt,
     updatedAt: imageTemplate.updatedAt || imageTemplate.createdAt,
-    referenceCount: Array.isArray(imageTemplate.referenceImages) ? imageTemplate.referenceImages.length : 0,
+    referenceCount: Array.isArray(imageTemplate.referenceImages)
+      ? imageTemplate.referenceImages.length
+      : 0,
     referenceImages: serializeReferenceImages(imageTemplate.referenceImages || []),
   };
 }
 
 export function parseJsonObject(value) {
-  const raw = String(value || "").trim();
+  const raw = String(value || '').trim();
   if (!raw) {
     return {};
   }
@@ -198,13 +216,13 @@ export function parseJsonObject(value) {
   try {
     return JSON.parse(raw);
   } catch {
-    const start = raw.indexOf("{");
-    const end = raw.lastIndexOf("}");
+    const start = raw.indexOf('{');
+    const end = raw.lastIndexOf('}');
     if (start >= 0 && end > start) {
       return JSON.parse(raw.slice(start, end + 1));
     }
-    throw new Error("A avaliação do modelo retornou um JSON inválido.");
+    throw new Error('A avaliação do modelo retornou um JSON inválido.');
   }
 }
 
-export { normalizePromptOptions, normalizeStringList } from "./validation.js";
+export { normalizePromptOptions, normalizeStringList } from './validation.js';
