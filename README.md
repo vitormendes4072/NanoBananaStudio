@@ -42,26 +42,27 @@ Nano Banana Studio is a **local-first studio** that runs on your machine with yo
 
 ## Features
 
-| Feature | Description |
-|---|---|
-| **Async job queue** | Up to 5 parallel generation jobs with configurable concurrency |
-| **Multi-model support** | Gemini 2.5 Flash, Gemini 2.5 Pro, Imagen 3.0, and experimental models |
-| **Reference images** | Attach up to 4 reference images per job (JPEG / PNG / WebP, max 15 MB each) |
-| **Background removal** | On-device ML model via `@imgly/background-removal-node` — no extra API call or cost |
-| **Canvas crop editor** | Browser-based crop tool with pixel-accurate buffer output |
-| **Product models** | Save reusable product configurations (name, alias, reference images) once, attach to any job |
-| **Image templates** | Save visual style presets and reuse them across multiple generation jobs |
-| **Folder organization** | Target folder per job; bulk move and delete across the entire library |
-| **Cost tracking** | Per-job estimated cost and cumulative usage summary grouped by model |
-| **Prompt presets** | Persist and reload custom prompt option sets via localStorage |
-| **Batch generation** | Submit multiple-quantity jobs in a single request |
-| **Crash recovery** | Jobs stuck in `processing` on crash are automatically reset to `queued` on restart |
+| Feature                 | Description                                                                                  |
+| ----------------------- | -------------------------------------------------------------------------------------------- |
+| **Async job queue**     | Up to 5 parallel generation jobs with configurable concurrency                               |
+| **Multi-model support** | Gemini 2.5 Flash, Gemini 2.5 Pro, Imagen 3.0, and experimental models                        |
+| **Reference images**    | Attach up to 4 reference images per job (JPEG / PNG / WebP, max 15 MB each)                  |
+| **Background removal**  | On-device ML model via `@imgly/background-removal-node` — no extra API call or cost          |
+| **Canvas crop editor**  | Browser-based crop tool with pixel-accurate buffer output                                    |
+| **Product models**      | Save reusable product configurations (name, alias, reference images) once, attach to any job |
+| **Image templates**     | Save visual style presets and reuse them across multiple generation jobs                     |
+| **Folder organization** | Target folder per job; bulk move and delete across the entire library                        |
+| **Cost tracking**       | Per-job estimated cost and cumulative usage summary grouped by model                         |
+| **Prompt presets**      | Persist and reload custom prompt option sets via localStorage                                |
+| **Batch generation**    | Submit multiple-quantity jobs in a single request                                            |
+| **Crash recovery**      | Jobs stuck in `processing` on crash are automatically reset to `queued` on restart           |
 
 ---
 
 ## Tech stack
 
 **Backend**
+
 - [Node.js](https://nodejs.org) 20+ with ES modules
 - [Express 5](https://expressjs.com)
 - [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) — synchronous SQLite driver with WAL mode
@@ -69,11 +70,13 @@ Nano Banana Studio is a **local-first studio** that runs on your machine with yo
 - [@imgly/background-removal-node](https://www.npmjs.com/package/@imgly/background-removal-node) — on-device background removal
 
 **Frontend**
+
 - Vanilla JavaScript (no framework)
 - Vanilla CSS — design tokens, glassmorphism, shimmer animations
 - [Vite 8](https://vite.dev) — dev server with HMR and production bundler
 
 **Persistence**
+
 - SQLite with WAL mode via `better-sqlite3`
 
 ---
@@ -102,13 +105,13 @@ cp .env.example .env
 
 ### Environment variables
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `GEMINI_API_KEY` | **Yes** | — | API key from [Google AI Studio](https://aistudio.google.com/app/apikey) |
-| `PORT` | No | `3000` | Port the Express server listens on |
-| `QUEUE_CONCURRENCY` | No | `2` | Parallel generation workers (1–5) |
-| `DATABASE_PATH` | No | `data/database.sqlite` | SQLite database file location |
-| `DATABASE_JOURNAL_MODE` | No | `WAL` | SQLite journal mode |
+| Variable                | Required | Default                | Description                                                             |
+| ----------------------- | -------- | ---------------------- | ----------------------------------------------------------------------- |
+| `GEMINI_API_KEY`        | **Yes**  | —                      | API key from [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| `PORT`                  | No       | `3000`                 | Port the Express server listens on                                      |
+| `QUEUE_CONCURRENCY`     | No       | `2`                    | Parallel generation workers (1–5)                                       |
+| `DATABASE_PATH`         | No       | `data/database.sqlite` | SQLite database file location                                           |
+| `DATABASE_JOURNAL_MODE` | No       | `WAL`                  | SQLite journal mode                                                     |
 
 ---
 
@@ -192,41 +195,41 @@ Open **http://localhost:3000**.
 
 ## API reference
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/health` | Server status, API key presence, active jobs, queue depth |
-| `GET` | `/api/jobs` | List all jobs with serialized metadata |
-| `POST` | `/api/jobs` | Create one or more generation jobs |
-| `DELETE` | `/api/jobs/:id` | Delete a completed or failed job and its files |
-| `POST` | `/api/jobs/:id/cancel` | Cancel a queued job |
-| `GET` | `/api/usage` | Cumulative cost summary grouped by model |
-| `GET` | `/api/thumb?src=` | Generate a 256×256 WebP thumbnail on demand |
-| `GET` | `/api/cutouts` | List background-removal results |
-| `POST` | `/api/cutouts` | Process a new background removal |
-| `DELETE` | `/api/cutouts/:id` | Delete a cutout and its file |
-| `GET` | `/api/crops` | List saved crops |
-| `POST` | `/api/crops` | Save a canvas crop |
-| `DELETE` | `/api/crops/:id` | Delete a crop |
-| `GET` | `/api/product-models` | List product models |
-| `POST` | `/api/product-models` | Create or update a product model |
-| `DELETE` | `/api/product-models/:alias` | Delete a product model |
-| `GET` | `/api/image-templates` | List image templates |
-| `POST` | `/api/image-templates` | Create or update an image template |
-| `DELETE` | `/api/image-templates/:alias` | Delete an image template |
-| `POST` | `/api/library/folders/assign` | Bulk-assign assets to a folder |
-| `DELETE` | `/api/library/bulk` | Bulk delete across jobs, cutouts, and crops |
+| Method   | Endpoint                      | Description                                               |
+| -------- | ----------------------------- | --------------------------------------------------------- |
+| `GET`    | `/api/health`                 | Server status, API key presence, active jobs, queue depth |
+| `GET`    | `/api/jobs`                   | List all jobs with serialized metadata                    |
+| `POST`   | `/api/jobs`                   | Create one or more generation jobs                        |
+| `DELETE` | `/api/jobs/:id`               | Delete a completed or failed job and its files            |
+| `POST`   | `/api/jobs/:id/cancel`        | Cancel a queued job                                       |
+| `GET`    | `/api/usage`                  | Cumulative cost summary grouped by model                  |
+| `GET`    | `/api/thumb?src=`             | Generate a 256×256 WebP thumbnail on demand               |
+| `GET`    | `/api/cutouts`                | List background-removal results                           |
+| `POST`   | `/api/cutouts`                | Process a new background removal                          |
+| `DELETE` | `/api/cutouts/:id`            | Delete a cutout and its file                              |
+| `GET`    | `/api/crops`                  | List saved crops                                          |
+| `POST`   | `/api/crops`                  | Save a canvas crop                                        |
+| `DELETE` | `/api/crops/:id`              | Delete a crop                                             |
+| `GET`    | `/api/product-models`         | List product models                                       |
+| `POST`   | `/api/product-models`         | Create or update a product model                          |
+| `DELETE` | `/api/product-models/:alias`  | Delete a product model                                    |
+| `GET`    | `/api/image-templates`        | List image templates                                      |
+| `POST`   | `/api/image-templates`        | Create or update an image template                        |
+| `DELETE` | `/api/image-templates/:alias` | Delete an image template                                  |
+| `POST`   | `/api/library/folders/assign` | Bulk-assign assets to a folder                            |
+| `DELETE` | `/api/library/bulk`           | Bulk delete across jobs, cutouts, and crops               |
 
 ---
 
 ## Supported models
 
-| Model ID | Type | Estimated cost |
-|---|---|---|
-| `gemini-2.5-flash` | Generation | ~$0.0000001 / image |
-| `gemini-2.5-pro` | Generation | ~$0.000002 / image |
-| `gemini-2.0-flash-exp` | Generation | Free (experimental) |
-| `imagen-3.0-generate-002` | Generation | ~$0.03 / image |
-| `imagen-3.0-fast-generate-001` | Generation | ~$0.03 / image |
+| Model ID                       | Type       | Estimated cost      |
+| ------------------------------ | ---------- | ------------------- |
+| `gemini-2.5-flash`             | Generation | ~$0.0000001 / image |
+| `gemini-2.5-pro`               | Generation | ~$0.000002 / image  |
+| `gemini-2.0-flash-exp`         | Generation | Free (experimental) |
+| `imagen-3.0-generate-002`      | Generation | ~$0.03 / image      |
+| `imagen-3.0-fast-generate-001` | Generation | ~$0.03 / image      |
 
 Costs are tracked per job and displayed in the **Usage** panel.
 

@@ -2,7 +2,7 @@ name: Smoke Tests
 
 on:
   push:
-    branches: [main, develop, "feature/**", "bugfix/**"]
+    branches: [main, develop, 'feature/**', 'bugfix/**']
   pull_request:
     branches: [main, develop]
 
