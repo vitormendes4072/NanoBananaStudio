@@ -10,7 +10,14 @@
     "dev:ui": "vite",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:ui\"",
     "build": "vite build",
-    "test:smoke": "node tests/smoke.test.mjs"
+    "test:smoke": "node tests/smoke.test.mjs",
+    "lint": "eslint server/ src/ server.js",
+    "lint:fix": "eslint --fix server/ src/ server.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@google/genai": "^2.0.0",
@@ -22,7 +29,12 @@
     "helmet": "^8.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "concurrently": "^9.2.1",
+    "eslint": "^10.4.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.3",
     "vite": "^8.0.11"
   }
 }

@@ -1,10 +1,13 @@
 // @ts-check
-import fs from "fs";
-import db from "./db.js";
+import fs from 'fs';
+import db from './db.js';
 import {
-  queueStatePath, cutoutStatePath, cropStatePath,
-  productModelStatePath, imageTemplateStatePath
-} from "./config.js";
+  queueStatePath,
+  cutoutStatePath,
+  cropStatePath,
+  productModelStatePath,
+  imageTemplateStatePath,
+} from './config.js';
 
 /** @typedef {import('./types.js').Job} Job */
 /** @typedef {import('./types.js').Cutout} Cutout */
@@ -17,13 +20,15 @@ export const state = {
   activeJobIds: new Set(),
   backgroundRemovalInFlight: false,
   backgroundRemovalSourceJobId: null,
-  
+
   get concurrency() {
     const row = db.prepare("SELECT value FROM app_settings WHERE key = 'concurrency'").get();
     return row ? Number(row.value) : Number(process.env.QUEUE_CONCURRENCY || 2);
   },
   set concurrency(val) {
-    db.prepare("INSERT INTO app_settings (key, value) VALUES ('concurrency', ?) ON CONFLICT(key) DO UPDATE SET value = ?").run(val, val);
+    db.prepare(
+      "INSERT INTO app_settings (key, value) VALUES ('concurrency', ?) ON CONFLICT(key) DO UPDATE SET value = ?"
+    ).run(val, val);
   },
 
   get queueState() {
@@ -31,50 +36,67 @@ export const state = {
     return row ? JSON.parse(row.value) : { lastJobId: 0, lastBatchId: 0 };
   },
   set queueState(val) {
-    db.prepare("INSERT INTO app_settings (key, value) VALUES ('queueState', ?) ON CONFLICT(key) DO UPDATE SET value = ?").run(JSON.stringify(val), JSON.stringify(val));
+    db.prepare(
+      "INSERT INTO app_settings (key, value) VALUES ('queueState', ?) ON CONFLICT(key) DO UPDATE SET value = ?"
+    ).run(JSON.stringify(val), JSON.stringify(val));
   },
 
   get jobs() {
-    return db.prepare("SELECT data FROM jobs ORDER BY id DESC").all().map(row => JSON.parse(row.data));
+    return db
+      .prepare('SELECT data FROM jobs ORDER BY id DESC')
+      .all()
+      .map((row) => JSON.parse(row.data));
   },
   get cutouts() {
-    return db.prepare("SELECT data FROM cutouts").all().map(row => JSON.parse(row.data));
+    return db
+      .prepare('SELECT data FROM cutouts')
+      .all()
+      .map((row) => JSON.parse(row.data));
   },
   get crops() {
-    return db.prepare("SELECT data FROM crops").all().map(row => JSON.parse(row.data));
+    return db
+      .prepare('SELECT data FROM crops')
+      .all()
+      .map((row) => JSON.parse(row.data));
   },
   get productModels() {
-    return db.prepare("SELECT data FROM product_models").all().map(row => JSON.parse(row.data));
+    return db
+      .prepare('SELECT data FROM product_models')
+      .all()
+      .map((row) => JSON.parse(row.data));
   },
   get imageTemplates() {
-    return db.prepare("SELECT data FROM image_templates").all().map(row => JSON.parse(row.data));
+    return db
+      .prepare('SELECT data FROM image_templates')
+      .all()
+      .map((row) => JSON.parse(row.data));
   },
 
   get jobsById() {
     const map = new Map();
-    state.jobs.forEach(j => map.set(j.id, j));
+    state.jobs.forEach((j) => map.set(j.id, j));
     return map;
   },
   get cutoutsById() {
     const map = new Map();
-    state.cutouts.forEach(c => map.set(c.id, c));
+    state.cutouts.forEach((c) => map.set(c.id, c));
     return map;
   },
   get cropsById() {
     const map = new Map();
-    state.crops.forEach(c => map.set(c.id, c));
+    state.crops.forEach((c) => map.set(c.id, c));
     return map;
   },
   get productModelsByAlias() {
     const map = new Map();
-    state.productModels.forEach(m => map.set(m.alias, m));
+    state.productModels.forEach((m) => map.set(m.alias, m));
     return map;
   },
   get imageTemplatesByAlias() {
     const map = new Map();
-    state.imageTemplates.forEach(t => map.set(t.alias, t));
+    state.imageTemplates.forEach((t) => map.set(t.alias, t));
     return map;
-  }
+  },
 };
 
 // --- DAO Functions ---
@@ -84,7 +106,8 @@ export const state = {
  */
 export function saveJob(job) {
   const blob = JSON.stringify(job);
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO jobs (id, status, created_at, model, folder, batch_id, finished_at, data)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
@@ -94,8 +117,11 @@ export function saveJob(job) {
       batch_id    = excluded.batch_id,
       finished_at = excluded.finished_at,
       data        = excluded.data
-  `).run(
-    job.id, job.status, job.createdAt,
+  `
+  ).run(
+    job.id,
+    job.status,
+    job.createdAt,
     job.model ?? null,
     job.targetFolder ?? null,
     job.batchId ?? null,
@@ -106,7 +132,7 @@ export function saveJob(job) {
 
 /** @param {number} id */
 export function deleteJobFromDb(id) {
-  db.prepare("DELETE FROM jobs WHERE id = ?").run(id);
+  db.prepare('DELETE FROM jobs WHERE id = ?').run(id);
 }
 
 /**
@@ -114,14 +140,16 @@ export function deleteJobFromDb(id) {
  */
 export function saveCutout(cutout) {
   const blob = JSON.stringify(cutout);
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO cutouts (id, folder, created_at, source_job_id, data)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       folder        = excluded.folder,
       source_job_id = excluded.source_job_id,
       data          = excluded.data
-  `).run(
+  `
+  ).run(
     cutout.id,
     cutout.folder ?? null,
     cutout.createdAt ?? new Date().toISOString(),
@@ -132,7 +160,7 @@ export function saveCutout(cutout) {
 
 /** @param {string} id */
 export function deleteCutoutFromDb(id) {
-  db.prepare("DELETE FROM cutouts WHERE id = ?").run(id);
+  db.prepare('DELETE FROM cutouts WHERE id = ?').run(id);
 }
 
 /**
@@ -140,14 +168,16 @@ export function deleteCutoutFromDb(id) {
  */
 export function saveCrop(crop) {
   const blob = JSON.stringify(crop);
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO crops (id, folder, created_at, source_job_id, data)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       folder        = excluded.folder,
       source_job_id = excluded.source_job_id,
       data          = excluded.data
-  `).run(
+  `
+  ).run(
     crop.id,
     crop.folder ?? null,
     crop.createdAt ?? new Date().toISOString(),
@@ -158,7 +188,7 @@ export function saveCrop(crop) {
 
 /** @param {string} id */
 export function deleteCropFromDb(id) {
-  db.prepare("DELETE FROM crops WHERE id = ?").run(id);
+  db.prepare('DELETE FROM crops WHERE id = ?').run(id);
 }
 
 /**
@@ -166,25 +196,21 @@ export function deleteCropFromDb(id) {
  */
 export function saveProductModel(model) {
   const blob = JSON.stringify(model);
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO product_models (alias, name, created_at, updated_at, data)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(alias) DO UPDATE SET
       name       = excluded.name,
       updated_at = excluded.updated_at,
       data       = excluded.data
-  `).run(
-    model.alias,
-    model.name ?? null,
-    model.createdAt ?? null,
-    model.updatedAt ?? null,
-    blob
-  );
+  `
+  ).run(model.alias, model.name ?? null, model.createdAt ?? null, model.updatedAt ?? null, blob);
 }
 
 /** @param {string} alias */
 export function deleteProductModelFromDb(alias) {
-  db.prepare("DELETE FROM product_models WHERE alias = ?").run(alias);
+  db.prepare('DELETE FROM product_models WHERE alias = ?').run(alias);
 }
 
 /**
@@ -192,14 +218,16 @@ export function deleteProductModelFromDb(alias) {
  */
 export function saveImageTemplate(template) {
   const blob = JSON.stringify(template);
-  db.prepare(`
+  db.prepare(
+    `
     INSERT INTO image_templates (alias, name, created_at, updated_at, data)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(alias) DO UPDATE SET
       name       = excluded.name,
       updated_at = excluded.updated_at,
       data       = excluded.data
-  `).run(
+  `
+  ).run(
     template.alias,
     template.name ?? null,
     template.createdAt ?? null,
@@ -210,7 +238,7 @@ export function saveImageTemplate(template) {
 
 /** @param {string} alias */
 export function deleteImageTemplateFromDb(alias) {
-  db.prepare("DELETE FROM image_templates WHERE alias = ?").run(alias);
+  db.prepare('DELETE FROM image_templates WHERE alias = ?').run(alias);
 }
 
 // Dummy methods to satisfy imports that might still call them directly
@@ -222,7 +250,7 @@ export function persistImageTemplateState() {}
 
 export async function loadState() {
   migrateFromJsonToSqlite();
-  
+
   // Reset jobs stuck in processing on last crash back to queued
   db.prepare(
     "UPDATE jobs SET status = 'queued', data = json_set(data, '$.status', 'queued') WHERE status = 'processing'"
@@ -233,50 +261,50 @@ function migrateFromJsonToSqlite() {
   const isMigrated = db.prepare("SELECT value FROM app_settings WHERE key = 'migrated_json'").get();
   if (isMigrated) return;
 
-  console.log("Iniciando migração dos arquivos JSON para o SQLite...");
+  console.log('Iniciando migração dos arquivos JSON para o SQLite...');
 
   db.transaction(() => {
     try {
       if (fs.existsSync(queueStatePath)) {
-        const data = JSON.parse(fs.readFileSync(queueStatePath, "utf8"));
+        const data = JSON.parse(fs.readFileSync(queueStatePath, 'utf8'));
         state.queueState = { lastJobId: data.lastJobId || 0, lastBatchId: data.lastBatchId || 0 };
         if (data.jobs && Array.isArray(data.jobs)) {
-          data.jobs.forEach(job => saveJob(job));
+          data.jobs.forEach((job) => saveJob(job));
         }
       }
 
       if (fs.existsSync(cutoutStatePath)) {
-        const data = JSON.parse(fs.readFileSync(cutoutStatePath, "utf8"));
+        const data = JSON.parse(fs.readFileSync(cutoutStatePath, 'utf8'));
         if (data.cutouts && Array.isArray(data.cutouts)) {
-          data.cutouts.forEach(c => saveCutout(c));
+          data.cutouts.forEach((c) => saveCutout(c));
         }
       }
 
       if (fs.existsSync(cropStatePath)) {
-        const data = JSON.parse(fs.readFileSync(cropStatePath, "utf8"));
+        const data = JSON.parse(fs.readFileSync(cropStatePath, 'utf8'));
         if (data.crops && Array.isArray(data.crops)) {
-          data.crops.forEach(c => saveCrop(c));
+          data.crops.forEach((c) => saveCrop(c));
         }
       }
 
       if (fs.existsSync(productModelStatePath)) {
-        const data = JSON.parse(fs.readFileSync(productModelStatePath, "utf8"));
+        const data = JSON.parse(fs.readFileSync(productModelStatePath, 'utf8'));
         if (data.productModels && Array.isArray(data.productModels)) {
-          data.productModels.forEach(m => saveProductModel(m));
+          data.productModels.forEach((m) => saveProductModel(m));
         }
       }
 
       if (fs.existsSync(imageTemplateStatePath)) {
-        const data = JSON.parse(fs.readFileSync(imageTemplateStatePath, "utf8"));
+        const data = JSON.parse(fs.readFileSync(imageTemplateStatePath, 'utf8'));
         if (data.imageTemplates && Array.isArray(data.imageTemplates)) {
-          data.imageTemplates.forEach(t => saveImageTemplate(t));
+          data.imageTemplates.forEach((t) => saveImageTemplate(t));
         }
       }
 
       db.prepare("INSERT INTO app_settings (key, value) VALUES ('migrated_json', 'true')").run();
-      console.log("Migração concluída com sucesso!");
+      console.log('Migração concluída com sucesso!');
     } catch (e) {
-      console.error("Erro durante a migração:", e);
+      console.error('Erro durante a migração:', e);
     }
   })();
 }

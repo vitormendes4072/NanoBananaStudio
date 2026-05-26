@@ -1,9 +1,9 @@
-import express from "express";
-import systemRouter from "./system.js";
-import jobsRouter from "./jobs.js";
-import mediaRouter from "./media.js";
-import libraryRouter from "./library.js";
-import analyticsRouter from "./analytics.js";
+import express from 'express';
+import systemRouter from './system.js';
+import jobsRouter from './jobs.js';
+import mediaRouter from './media.js';
+import libraryRouter from './library.js';
+import analyticsRouter from './analytics.js';
 
 const router = express.Router();
 
@@ -14,7 +14,7 @@ router.use(libraryRouter);
 router.use(analyticsRouter);
 
 router.use((req, res) => {
-  res.status(404).json({ error: "Rota não encontrada." });
+  res.status(404).json({ error: 'Rota não encontrada.' });
 });
 
 export default router;

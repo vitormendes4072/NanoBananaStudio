@@ -1,19 +1,43 @@
-import fs from "fs";
-import path from "path";
-import { 
-  state, saveJob, saveCutout, saveCrop, saveProductModel, saveImageTemplate,
-  deleteCutoutFromDb, deleteCropFromDb, deleteProductModelFromDb, deleteImageTemplateFromDb
-} from "./state.js";
-import { 
-  normalizeBranchReference, normalizeCutoutSource, normalizeCropSource,
-  normalizeIdList, resolveImageSourcePath, badRequestError, buildManagedAssetRelativePath,
+import fs from 'fs';
+import path from 'path';
+import {
+  state,
+  saveJob,
+  saveCutout,
+  saveCrop,
+  saveProductModel,
+  saveImageTemplate,
+  deleteCutoutFromDb,
+  deleteCropFromDb,
+  deleteProductModelFromDb,
+  deleteImageTemplateFromDb,
+} from './state.js';
+import {
+  resolveImageSourcePath,
+  badRequestError,
+  buildManagedAssetRelativePath,
   resolveManagedAssetWritePath,
-  normalizeManagedRelativePath, buildAssetUrl, notFoundError, removeFileIfPresent,
-  moveMediaRecordToFolder, normalizeProductModelAlias, normalizeReferenceImages,
-  storeReferenceImages, cleanupReferenceImageFiles, normalizeImageTemplateAlias, normalizePromptOptions
-} from "./utils.js";
-import { cutoutsDir, cropsDir, referencesDir, generatedDir, mimeTypes, allowedReferenceMimeTypes } from "./config.js";
-import { runBackgroundRemoval } from "./backgroundRemoval.js";
+  normalizeManagedRelativePath,
+  buildAssetUrl,
+  notFoundError,
+  removeFileIfPresent,
+  moveMediaRecordToFolder,
+  normalizeProductModelAlias,
+  normalizeReferenceImages,
+  storeReferenceImages,
+  cleanupReferenceImageFiles,
+  normalizeImageTemplateAlias,
+  normalizePromptOptions,
+} from './utils.js';
+import {
+  cutoutsDir,
+  cropsDir,
+  referencesDir,
+  generatedDir,
+  mimeTypes,
+  allowedReferenceMimeTypes,
+} from './config.js';
+import { runBackgroundRemoval } from './backgroundRemoval.js';
 
 export function createBranchReference(branchReference) {
   if (!branchReference) {
@@ -22,17 +46,17 @@ export function createBranchReference(branchReference) {
 
   const sourcePath = resolveImageSourcePath(branchReference.imageUrl);
   if (!sourcePath) {
-    throw badRequestError("Não foi possível localizar a imagem base selecionada.");
+    throw badRequestError('Não foi possível localizar a imagem base selecionada.');
   }
 
   const extension = path.extname(sourcePath).toLowerCase();
   const mimeType = mimeTypes[extension];
   if (!allowedReferenceMimeTypes.has(mimeType)) {
-    throw badRequestError("A imagem base precisa estar em PNG, JPG ou WEBP.");
+    throw badRequestError('A imagem base precisa estar em PNG, JPG ou WEBP.');
   }
 
   const filename = buildManagedAssetRelativePath({
-    extension: extension.replace(/^\./, ""),
+    extension: extension.replace(/^\./, ''),
     prefix: `branch-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   });
   const absolutePath = resolveManagedAssetWritePath(referencesDir, filename);
@@ -45,22 +69,24 @@ export function createBranchReference(branchReference) {
     size: fs.statSync(absolutePath).size,
     relativePath: filename,
     sourceJobId: branchReference.sourceJobId,
-    sourceKind: "branch",
+    sourceKind: 'branch',
   };
 }
 
 export async function createCutout(source) {
   const inputPath = resolveImageSourcePath(source.imageUrl);
   if (!inputPath) {
-    throw badRequestError("Não foi possível localizar a imagem para remover o fundo.");
+    throw badRequestError('Não foi possível localizar a imagem para remover o fundo.');
   }
 
   if (state.backgroundRemovalInFlight) {
-    throw badRequestError("Já existe um recorte em processamento. Aguarde terminar e tente de novo.");
+    throw badRequestError(
+      'Já existe um recorte em processamento. Aguarde terminar e tente de novo.'
+    );
   }
 
   const outputFilename = buildManagedAssetRelativePath({
-    extension: "png",
+    extension: 'png',
     prefix: `cutout-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   });
   const relativeFilename = normalizeManagedRelativePath(
@@ -82,9 +108,9 @@ export async function createCutout(source) {
     createdAt: new Date().toISOString(),
     filename: relativeFilename,
     relativePath: relativeFilename,
-    imageUrl: buildAssetUrl("cutouts", relativeFilename),
+    imageUrl: buildAssetUrl('cutouts', relativeFilename),
     localPath: outputPath,
-    folder: source.folder || "",
+    folder: source.folder || '',
     sourceImageUrl: source.imageUrl,
     sourceJobId: source.sourceJobId,
     label: source.label,
@@ -97,7 +123,7 @@ export async function createCutout(source) {
 
 export function createCrop(source) {
   const outputFilename = buildManagedAssetRelativePath({
-    extension: "png",
+    extension: 'png',
     prefix: `crop-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   });
   const relativeFilename = normalizeManagedRelativePath(
@@ -111,9 +137,9 @@ export function createCrop(source) {
     createdAt: new Date().toISOString(),
     filename: relativeFilename,
     relativePath: relativeFilename,
-    imageUrl: buildAssetUrl("crops", relativeFilename),
+    imageUrl: buildAssetUrl('crops', relativeFilename),
     localPath: outputPath,
-    folder: source.folder || "",
+    folder: source.folder || '',
     sourceImageUrl: source.sourceImageUrl || null,
     sourceJobId: source.sourceJobId,
     label: source.label,
@@ -153,7 +179,7 @@ export function trimCrops() {
 export function deleteCutout(cutoutId) {
   const cutout = state.cutoutsById.get(cutoutId);
   if (!cutout) {
-    throw notFoundError("Recorte sem fundo não encontrado.");
+    throw notFoundError('Recorte sem fundo não encontrado.');
   }
 
   deleteCutoutFromDb(cutout.id);
@@ -164,7 +190,7 @@ export function deleteCutout(cutoutId) {
 export function deleteCrop(cropId) {
   const crop = state.cropsById.get(cropId);
   if (!crop) {
-    throw notFoundError("Recorte não encontrado.");
+    throw notFoundError('Recorte não encontrado.');
   }
 
   deleteCropFromDb(crop.id);
@@ -172,7 +198,7 @@ export function deleteCrop(cropId) {
   return crop;
 }
 
-export function assignLibraryFolder({ folder = "", jobs = [], cutouts = [], crops = [] } = {}) {
+export function assignLibraryFolder({ folder = '', jobs = [], cutouts = [], crops = [] } = {}) {
   const updated = {
     gallery: 0,
     cutouts: 0,
@@ -183,14 +209,14 @@ export function assignLibraryFolder({ folder = "", jobs = [], cutouts = [], crop
   const allowedJobs = new Set(jobs);
   for (const job of state.jobs) {
     if (!allowedJobs.has(job.id)) continue;
-    if (!job?.result?.localPath || job.status !== "completed") {
+    if (!job?.result?.localPath || job.status !== 'completed') {
       continue;
     }
 
     moveMediaRecordToFolder({
       item: job.result,
       baseDir: generatedDir,
-      assetType: "generated",
+      assetType: 'generated',
       folder,
       dateValue: job.finishedAt || job.createdAt,
     });
@@ -208,7 +234,7 @@ export function assignLibraryFolder({ folder = "", jobs = [], cutouts = [], crop
     moveMediaRecordToFolder({
       item,
       baseDir: cutoutsDir,
-      assetType: "cutouts",
+      assetType: 'cutouts',
       folder,
       dateValue: item.createdAt,
     });
@@ -226,7 +252,7 @@ export function assignLibraryFolder({ folder = "", jobs = [], cutouts = [], crop
     moveMediaRecordToFolder({
       item,
       baseDir: cropsDir,
-      assetType: "crops",
+      assetType: 'crops',
       folder,
       dateValue: item.createdAt,
     });
@@ -239,28 +265,32 @@ export function assignLibraryFolder({ folder = "", jobs = [], cutouts = [], crop
 }
 
 export function upsertProductModel(body) {
-  const name = String(body?.name || "").trim().slice(0, 120);
+  const name = String(body?.name || '')
+    .trim()
+    .slice(0, 120);
   const alias = normalizeProductModelAlias(body?.alias || name);
-  const notes = String(body?.notes || "").trim().slice(0, 500);
+  const notes = String(body?.notes || '')
+    .trim()
+    .slice(0, 500);
   const normalizedReferenceImages = normalizeReferenceImages(body?.referenceImages);
 
   if (!name) {
-    throw badRequestError("Informe o nome do modelo de produto.");
+    throw badRequestError('Informe o nome do modelo de produto.');
   }
 
   if (!alias) {
-    throw badRequestError("Informe um alias valido para o modelo de produto.");
+    throw badRequestError('Informe um alias valido para o modelo de produto.');
   }
 
   if (!normalizedReferenceImages.length) {
-    throw badRequestError("Envie pelo menos uma imagem de referência para o modelo de produto.");
+    throw badRequestError('Envie pelo menos uma imagem de referência para o modelo de produto.');
   }
 
   const storedReferenceImages = storeReferenceImages(normalizedReferenceImages, {
     folderPrefix: `product-models/${alias}`,
   }).map((image) => ({
     ...image,
-    sourceKind: "product-model",
+    sourceKind: 'product-model',
   }));
 
   const previousModel = state.productModelsByAlias.get(alias);
@@ -269,7 +299,8 @@ export function upsertProductModel(body) {
   }
 
   const nextProductModel = {
-    id: previousModel?.id || `product_model_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    id:
+      previousModel?.id || `product_model_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     alias,
     name,
     notes,
@@ -284,25 +315,29 @@ export function upsertProductModel(body) {
 }
 
 export function upsertImageTemplate(body) {
-  const name = String(body?.name || "").trim().slice(0, 120);
+  const name = String(body?.name || '')
+    .trim()
+    .slice(0, 120);
   const alias = normalizeImageTemplateAlias(body?.alias || name);
-  const notes = String(body?.notes || "").trim().slice(0, 500);
+  const notes = String(body?.notes || '')
+    .trim()
+    .slice(0, 500);
   const promptOptions = normalizePromptOptions(body?.promptOptions);
   const normalizedReferenceImages = normalizeReferenceImages(body?.referenceImages || []);
 
   if (!name) {
-    throw badRequestError("Informe o nome do template visual.");
+    throw badRequestError('Informe o nome do template visual.');
   }
 
   if (!alias) {
-    throw badRequestError("Informe um alias valido para o template visual.");
+    throw badRequestError('Informe um alias valido para o template visual.');
   }
 
   const storedReferenceImages = storeReferenceImages(normalizedReferenceImages, {
     folderPrefix: `image-templates/${alias}`,
   }).map((image) => ({
     ...image,
-    sourceKind: "image-template",
+    sourceKind: 'image-template',
   }));
 
   const previousTemplate = state.imageTemplatesByAlias.get(alias);
@@ -311,7 +346,9 @@ export function upsertImageTemplate(body) {
   }
 
   const nextImageTemplate = {
-    id: previousTemplate?.id || `image_template_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    id:
+      previousTemplate?.id ||
+      `image_template_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     alias,
     name,
     notes,
@@ -329,7 +366,7 @@ export function deleteProductModel(aliasValue) {
   const alias = normalizeProductModelAlias(aliasValue);
   const removedModel = state.productModelsByAlias.get(alias);
   if (!removedModel) {
-    throw notFoundError("Modelo de produto não encontrado.");
+    throw notFoundError('Modelo de produto não encontrado.');
   }
 
   deleteProductModelFromDb(alias);
@@ -341,7 +378,7 @@ export function deleteImageTemplate(aliasValue) {
   const alias = normalizeImageTemplateAlias(aliasValue);
   const removedTemplate = state.imageTemplatesByAlias.get(alias);
   if (!removedTemplate) {
-    throw notFoundError("Template visual não encontrado.");
+    throw notFoundError('Template visual não encontrado.');
   }
 
   deleteImageTemplateFromDb(alias);

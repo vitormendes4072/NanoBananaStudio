@@ -55,7 +55,7 @@ async function main() {
   try {
     const server = await startServer(port);
     console.log(`Servidor rodando na porta ${port}`);
-    
+
     // Configurar graceful shutdown
     const shutdown = () => {
       console.log('Encerrando servidor...');
@@ -67,14 +67,13 @@ async function main() {
 
     process.on('SIGINT', shutdown);
     process.on('SIGTERM', shutdown);
-
   } catch (error) {
     console.error('Falha ao iniciar servidor:', error);
     process.exit(1);
   }
 }
 
-const executedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
+const executedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
 if (fileURLToPath(import.meta.url) === executedPath) {
   main();
 }
