@@ -1,5 +1,0 @@
-﻿
-> nano-banana-studio@1.0.0 test:smoke
-> node tests/smoke.test.mjs
-
-Nano Banana Studio em http://localhost:3217
