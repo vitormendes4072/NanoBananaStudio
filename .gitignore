@@ -1,11 +1,35 @@
+# Ambiente
 .env
+
+# Controle interno (não sobe ao GitHub)
+CLAUDE.md
+ROADMAP.md
+
+# Dependências
 node_modules
+
+# Build
 dist/
+
+# Banco de dados
 data/database.sqlite
 data/database.sqlite-journal
 data/database.sqlite-wal
 data/database.sqlite-shm
+
+# Estado legado (migrado para SQLite — arquivos de runtime)
+data/queue-state.json
+data/crops-state.json
+data/cutouts-state.json
+data/product-models.json
+data/image-templates.json
+
+# Artefatos de runtime
 data/thumbs/
+data/tmp/
+data/_imgly_node_test.png
+
+# Assets gerados pelo usuário
 generated/
 cutouts/
 crops/
@@ -15,3 +39,15 @@ uploads/
 !cutouts/.gitkeep
 !crops/.gitkeep
 !references/.gitkeep
+
+# Testes — outputs gerados a cada execução
+smoke-test-output.txt
+tests/smoke-results.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
