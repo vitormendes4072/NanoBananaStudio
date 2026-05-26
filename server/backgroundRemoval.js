@@ -1,11 +1,11 @@
-import fs from "fs";
-import path from "path";
-import { pathToFileURL } from "url";
-import { mimeTypeToExtension, removeFileIfPresent } from "./utils.js";
-import { dataDir } from "./config.js";
+import fs from 'fs';
+import path from 'path';
+import { pathToFileURL } from 'url';
+import { mimeTypeToExtension, removeFileIfPresent } from './utils.js';
+import { dataDir } from './config.js';
 
 async function removeBackgroundFromFile(inputUrl, options) {
-  const { removeBackground } = await import("@imgly/background-removal-node");
+  const { removeBackground } = await import('@imgly/background-removal-node');
   return removeBackground(inputUrl, options);
 }
 
@@ -13,20 +13,20 @@ export async function runBackgroundRemoval(inputPath, outputPath) {
   const inputUrl = pathToFileURL(inputPath).href;
   const blob = await removeBackgroundFromFile(inputUrl, {
     output: {
-      format: "image/png",
+      format: 'image/png',
     },
   });
   const bytes = Buffer.from(await blob.arrayBuffer());
   fs.writeFileSync(outputPath, bytes);
 
   if (!fs.existsSync(outputPath)) {
-    throw new Error("O removedor de fundo terminou sem gerar arquivo de saida.");
+    throw new Error('O removedor de fundo terminou sem gerar arquivo de saida.');
   }
 }
 
 export async function removeBackgroundFromReferenceImage(referenceImage) {
   const inputExtension = mimeTypeToExtension(referenceImage.mimeType);
-  const tempDir = path.join(dataDir, "tmp");
+  const tempDir = path.join(dataDir, 'tmp');
   fs.mkdirSync(tempDir, { recursive: true });
 
   const inputPath = path.join(
@@ -44,9 +44,9 @@ export async function removeBackgroundFromReferenceImage(referenceImage) {
 
     const outputBuffer = fs.readFileSync(outputPath);
     return {
-      name: `${path.basename(referenceImage.name, path.extname(referenceImage.name || "")) || "referencia"}-sem-fundo.png`,
-      mimeType: "image/png",
-      data: outputBuffer.toString("base64"),
+      name: `${path.basename(referenceImage.name, path.extname(referenceImage.name || '')) || 'referencia'}-sem-fundo.png`,
+      mimeType: 'image/png',
+      data: outputBuffer.toString('base64'),
       size: outputBuffer.length,
     };
   } finally {
@@ -54,4 +54,3 @@ export async function removeBackgroundFromReferenceImage(referenceImage) {
     removeFileIfPresent(outputPath);
   }
 }
-

@@ -1,22 +1,29 @@
-import { state, saveJob, deleteJobFromDb, deleteCutoutFromDb, deleteCropFromDb } from "./state.js";
-import { 
-  buildJobId, normalizePromptOptions, serializeJob, buildBatchId, 
-  normalizeConcurrency, normalizeQuantity, normalizeJobError, buildImageName,
-  notFoundError, badRequestError, removeFileIfPresent, cleanupReferenceFilesForJobs,
-  normalizeJobProductModels, normalizeJobImageTemplates, normalizeLibraryFolder
-} from "./utils.js";
-import { generateImage } from "./gemini.js";
-import { broadcast } from "./sse.js";
+import { state, saveJob, deleteJobFromDb, deleteCutoutFromDb, deleteCropFromDb } from './state.js';
+import {
+  buildJobId,
+  normalizePromptOptions,
+  serializeJob,
+  normalizeJobError,
+  notFoundError,
+  badRequestError,
+  removeFileIfPresent,
+  cleanupReferenceFilesForJobs,
+  normalizeJobProductModels,
+  normalizeJobImageTemplates,
+  normalizeLibraryFolder,
+} from './utils.js';
+import { generateImage } from './gemini.js';
+import { broadcast } from './sse.js';
 
 export function createJob({
   prompt,
-  promptBase = "",
+  promptBase = '',
   promptOptions = {},
   model,
   referenceImages = [],
   productModels = [],
   imageTemplates = [],
-  targetFolder = "",
+  targetFolder = '',
   batchId = null,
   batchIndex = null,
   batchTotal = null,
@@ -34,7 +41,7 @@ export function createJob({
     batchId,
     batchIndex,
     batchTotal,
-    status: "queued",
+    status: 'queued',
     createdAt: new Date().toISOString(),
     startedAt: null,
     finishedAt: null,
@@ -44,23 +51,23 @@ export function createJob({
 
   saveJob(job);
   trimJobs();
-  broadcast("jobs:update");
+  broadcast('jobs:update');
   return job;
 }
 
 export async function processQueue() {
   while (state.activeJobIds.size < state.concurrency) {
     const jobs = state.jobs;
-    const nextJob = jobs.find((job) => job.status === "queued");
+    const nextJob = jobs.find((job) => job.status === 'queued');
     if (!nextJob) {
       return;
     }
 
     state.activeJobIds.add(nextJob.id);
-    nextJob.status = "processing";
+    nextJob.status = 'processing';
     nextJob.startedAt = new Date().toISOString();
     saveJob(nextJob);
-    broadcast("jobs:update");
+    broadcast('jobs:update');
 
     runJob(nextJob);
   }
@@ -69,17 +76,17 @@ export async function processQueue() {
 export async function runJob(job) {
   try {
     const result = await generateImage(job);
-    job.status = "completed";
+    job.status = 'completed';
     job.finishedAt = new Date().toISOString();
     job.result = result;
   } catch (error) {
-    job.status = "failed";
+    job.status = 'failed';
     job.finishedAt = new Date().toISOString();
     job.errorInfo = normalizeJobError(error);
   } finally {
     state.activeJobIds.delete(job.id);
     saveJob(job);
-    broadcast("jobs:update");
+    broadcast('jobs:update');
     processQueue();
   }
 }
@@ -87,11 +94,11 @@ export async function runJob(job) {
 export function deleteJob(jobId) {
   const job = state.jobsById.get(jobId);
   if (!job) {
-    throw notFoundError("Imagem não encontrada.");
+    throw notFoundError('Imagem não encontrada.');
   }
 
-  if (job.status === "processing") {
-    throw badRequestError("Aguarde a imagem terminar de processar antes de remover.");
+  if (job.status === 'processing') {
+    throw badRequestError('Aguarde a imagem terminar de processar antes de remover.');
   }
 
   deleteJobFromDb(job.id);
@@ -118,8 +125,10 @@ export function trimJobs() {
 export function deleteGalleryJobsBulk(ids = []) {
   const allowedIds = new Set(ids);
   const jobs = state.jobs;
-  const removableJobs = jobs.filter((job) => allowedIds.has(job.id) && job.status !== "processing" && job.result?.localPath);
-  
+  const removableJobs = jobs.filter(
+    (job) => allowedIds.has(job.id) && job.status !== 'processing' && job.result?.localPath
+  );
+
   for (const job of removableJobs) {
     deleteJobFromDb(job.id);
     state.activeJobIds.delete(job.id);
@@ -134,7 +143,7 @@ export function deleteCutoutsBulk(ids = []) {
   const allowedIds = new Set(ids);
   const cutouts = state.cutouts;
   const removable = cutouts.filter((item) => allowedIds.has(item.id));
-  
+
   for (const item of removable) {
     deleteCutoutFromDb(item.id);
     removeFileIfPresent(item.localPath);
@@ -147,7 +156,7 @@ export function deleteCropsBulk(ids = []) {
   const allowedIds = new Set(ids);
   const crops = state.crops;
   const removable = crops.filter((item) => allowedIds.has(item.id));
-  
+
   for (const item of removable) {
     deleteCropFromDb(item.id);
     removeFileIfPresent(item.localPath);

@@ -1,31 +1,44 @@
 <!doctype html>
 <html lang="pt-BR">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Nano Banana Studio</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/src/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/src/styles.css" />
   </head>
   <body>
     <main class="shell">
       <section class="hero hero-panel">
         <div class="hero-copy">
           <div class="hero-brand-row">
-            <img class="brand-mark" src="/logoSecundaria.svg" alt="Dormio">
+            <img class="brand-mark" src="/logoSecundaria.svg" alt="Dormio" />
             <h1>Nano Banana Studio</h1>
           </div>
         </div>
 
-        <section class="panel overview-panel hero-usage-panel collapsible-section" data-collapsible-section="usage">
+        <section
+          class="panel overview-panel hero-usage-panel collapsible-section"
+          data-collapsible-section="usage"
+        >
           <div class="section-head section-head-usage">
             <h2>Uso Estimado</h2>
             <div class="section-head-actions usage-head-actions">
               <div id="usage-links" class="message-links usage-links-row"></div>
               <p id="usage-summary" class="queue-summary">Carregando resumo de uso...</p>
-              <button class="panel-expand-button section-collapse-button" type="button" data-toggle-section="usage" aria-label="Minimizar Uso Estimado" aria-expanded="true" title="Minimizar Uso Estimado">
+              <button
+                class="panel-expand-button section-collapse-button"
+                type="button"
+                data-toggle-section="usage"
+                aria-label="Minimizar Uso Estimado"
+                aria-expanded="true"
+                title="Minimizar Uso Estimado"
+              >
                 <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
                   <path d="M6 12h12"></path>
                   <path class="section-collapse-icon-vertical" d="M12 6v12"></path>
@@ -38,12 +51,22 @@
         </section>
       </section>
 
-      <section class="panel analytics-panel collapsible-section" data-collapsible-section="analytics">
+      <section
+        class="panel analytics-panel collapsible-section"
+        data-collapsible-section="analytics"
+      >
         <div class="section-head">
           <h2>Analytics</h2>
           <div class="section-head-actions">
             <p id="analytics-summary" class="queue-summary">Carregando...</p>
-            <button class="panel-expand-button section-collapse-button" type="button" data-toggle-section="analytics" aria-label="Minimizar Analytics" aria-expanded="true" title="Minimizar Analytics">
+            <button
+              class="panel-expand-button section-collapse-button"
+              type="button"
+              data-toggle-section="analytics"
+              aria-label="Minimizar Analytics"
+              aria-expanded="true"
+              title="Minimizar Analytics"
+            >
               <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
                 <path d="M6 12h12"></path>
                 <path class="section-collapse-icon-vertical" d="M12 6v12"></path>
@@ -61,7 +84,13 @@
               <div class="form-block form-block-full">
                 <div class="form-block-head">
                   <p class="form-kicker">Prompt</p>
-                  <button id="composer-expand-button" class="panel-expand-button" type="button" aria-label="Expandir painel de prompt" title="Expandir painel de prompt">
+                  <button
+                    id="composer-expand-button"
+                    class="panel-expand-button"
+                    type="button"
+                    aria-label="Expandir painel de prompt"
+                    title="Expandir painel de prompt"
+                  >
                     <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
                       <path d="M9 4H4v5"></path>
                       <path d="M15 4h5v5"></path>
@@ -73,16 +102,26 @@
               </div>
               <label class="field field-full">
                 <span>Prompt</span>
-                <textarea id="prompt" name="prompt" rows="8" placeholder="Ex.: editorial fashion photo of a futuristic motorcycle parked in rainy Sao Paulo, cinematic lighting, silver and amber palette" required></textarea>
+                <textarea
+                  id="prompt"
+                  name="prompt"
+                  rows="8"
+                  placeholder="Ex.: editorial fashion photo of a futuristic motorcycle parked in rainy Sao Paulo, cinematic lighting, silver and amber palette"
+                  required
+                ></textarea>
                 <div id="prompt-autocomplete" class="prompt-autocomplete" hidden>
                   <div id="prompt-autocomplete-list" class="prompt-autocomplete-list"></div>
                 </div>
               </label>
               <div id="product-model-mentions" class="product-model-mentions">
-                <p class="reference-empty">Use `@alias` no prompt para puxar um modelo de produto salvo.</p>
+                <p class="reference-empty">
+                  Use `@alias` no prompt para puxar um modelo de produto salvo.
+                </p>
               </div>
               <div id="image-template-mentions" class="product-model-mentions">
-                <p class="reference-empty">Use `#alias` no prompt para puxar um template visual salvo.</p>
+                <p class="reference-empty">
+                  Use `#alias` no prompt para puxar um template visual salvo.
+                </p>
               </div>
 
               <div class="field field-full advanced-prompt-panel">
@@ -91,7 +130,14 @@
                     <span>Controles avançados</span>
                     <p>Ajustes opcionais para guiar melhor a geração.</p>
                   </div>
-                  <button id="advanced-prompt-toggle" class="panel-expand-button advanced-prompt-toggle" type="button" aria-label="Minimizar controles avançados" aria-expanded="true" title="Minimizar controles avançados">
+                  <button
+                    id="advanced-prompt-toggle"
+                    class="panel-expand-button advanced-prompt-toggle"
+                    type="button"
+                    aria-label="Minimizar controles avançados"
+                    aria-expanded="true"
+                    title="Minimizar controles avançados"
+                  >
                     <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
                       <path d="M6 12h12"></path>
                       <path class="advanced-prompt-toggle-vertical" d="M12 6v12"></path>
@@ -102,26 +148,49 @@
                   <div class="field field-full prompt-preset-group">
                     <span>Estilo</span>
                     <div class="preset-chip-row">
-                      <button class="preset-chip" type="button" data-prompt-preset="product">Foto de produto</button>
-                      <button class="preset-chip" type="button" data-prompt-preset="fashion">Fashion</button>
-                      <button class="preset-chip" type="button" data-prompt-preset="lifestyle">Lifestyle</button>
-                      <button class="preset-chip" type="button" data-prompt-preset="ads">Ads</button>
-                      <button class="preset-chip" type="button" data-prompt-preset="closeup">Close-up</button>
+                      <button class="preset-chip" type="button" data-prompt-preset="product">
+                        Foto de produto
+                      </button>
+                      <button class="preset-chip" type="button" data-prompt-preset="fashion">
+                        Fashion
+                      </button>
+                      <button class="preset-chip" type="button" data-prompt-preset="lifestyle">
+                        Lifestyle
+                      </button>
+                      <button class="preset-chip" type="button" data-prompt-preset="ads">
+                        Ads
+                      </button>
+                      <button class="preset-chip" type="button" data-prompt-preset="closeup">
+                        Close-up
+                      </button>
                     </div>
                   </div>
                   <div class="field field-full prompt-preset-group">
                     <span>Formato</span>
                     <div class="preset-chip-row">
-                      <button class="preset-chip" type="button" data-prompt-preset="portrait-post">Post retrato</button>
-                      <button class="preset-chip" type="button" data-prompt-preset="story-reel">Story/Reel</button>
-                      <button class="preset-chip" type="button" data-prompt-preset="banner">Banner</button>
+                      <button class="preset-chip" type="button" data-prompt-preset="portrait-post">
+                        Post retrato
+                      </button>
+                      <button class="preset-chip" type="button" data-prompt-preset="story-reel">
+                        Story/Reel
+                      </button>
+                      <button class="preset-chip" type="button" data-prompt-preset="banner">
+                        Banner
+                      </button>
                     </div>
                   </div>
                   <div class="field field-full">
                     <span>Seus presets</span>
                     <div class="custom-preset-save-row">
-                      <input id="custom-preset-name" name="customPresetName" type="text" placeholder="Nome do preset">
-                      <button id="save-custom-preset" class="ghost-button" type="button">Salvar preset</button>
+                      <input
+                        id="custom-preset-name"
+                        name="customPresetName"
+                        type="text"
+                        placeholder="Nome do preset"
+                      />
+                      <button id="save-custom-preset" class="ghost-button" type="button">
+                        Salvar preset
+                      </button>
                     </div>
                     <div id="custom-preset-list" class="custom-preset-list">
                       <p class="custom-preset-empty">Nenhum preset salvo ainda.</p>
@@ -164,19 +233,39 @@
                   </label>
                   <label class="field field-full">
                     <span>Prompt negativo</span>
-                    <textarea id="negative-prompt" name="negativePrompt" rows="4" placeholder="Ex.: sem texto, sem watermark, sem artefatos, sem dedos extras"></textarea>
+                    <textarea
+                      id="negative-prompt"
+                      name="negativePrompt"
+                      rows="4"
+                      placeholder="Ex.: sem texto, sem watermark, sem artefatos, sem dedos extras"
+                    ></textarea>
                   </label>
                   <label class="field">
                     <span>Direção de estilo</span>
-                    <input id="style-direction" name="styleDirection" type="text" placeholder="Ex.: editorial clean, soft luxury, product shot">
+                    <input
+                      id="style-direction"
+                      name="styleDirection"
+                      type="text"
+                      placeholder="Ex.: editorial clean, soft luxury, product shot"
+                    />
                   </label>
                   <label class="field">
                     <span>Preservar</span>
-                    <input id="preserve-details" name="preserveDetails" type="text" placeholder="Ex.: identidade do produto, enquadramento, paleta">
+                    <input
+                      id="preserve-details"
+                      name="preserveDetails"
+                      type="text"
+                      placeholder="Ex.: identidade do produto, enquadramento, paleta"
+                    />
                   </label>
                   <label class="field field-full">
                     <span>Instruções extras</span>
-                    <textarea id="extra-instructions" name="extraInstructions" rows="3" placeholder="Ex.: priorize materiais realistas, contraste suave e acabamento premium"></textarea>
+                    <textarea
+                      id="extra-instructions"
+                      name="extraInstructions"
+                      rows="3"
+                      placeholder="Ex.: priorize materiais realistas, contraste suave e acabamento premium"
+                    ></textarea>
                   </label>
                 </div>
               </div>
@@ -198,7 +287,12 @@
               <div class="field field-full">
                 <span>Imagens de referência</span>
                 <label class="reference-upload" for="reference-images">
-                  <input id="reference-images" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+                  <input
+                    id="reference-images"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    multiple
+                  />
                   <strong>Upload de imagem</strong>
                   <p>PNG, JPG ou WEBP • até 4 arquivos</p>
                 </label>
@@ -327,12 +421,22 @@
         </aside>
 
         <section class="workspace-column">
-          <section class="panel resource-library-panel collapsible-section" data-collapsible-section="library">
+          <section
+            class="panel resource-library-panel collapsible-section"
+            data-collapsible-section="library"
+          >
             <div class="section-head">
               <h2>Biblioteca Criativa</h2>
               <div class="section-head-actions">
                 <p class="queue-summary">Cadastre produtos e templates fora da área de prompt.</p>
-                <button class="panel-expand-button section-collapse-button" type="button" data-toggle-section="library" aria-label="Minimizar Biblioteca Criativa" aria-expanded="true" title="Minimizar Biblioteca Criativa">
+                <button
+                  class="panel-expand-button section-collapse-button"
+                  type="button"
+                  data-toggle-section="library"
+                  aria-label="Minimizar Biblioteca Criativa"
+                  aria-expanded="true"
+                  title="Minimizar Biblioteca Criativa"
+                >
                   <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
                     <path d="M6 12h12"></path>
                     <path class="section-collapse-icon-vertical" d="M12 6v12"></path>
@@ -349,20 +453,33 @@
                 <div class="product-model-create-grid">
                   <label class="field">
                     <span>Nome do produto</span>
-                    <input id="product-model-name" type="text" placeholder="Ex.: Travesseiro Adjust">
+                    <input
+                      id="product-model-name"
+                      type="text"
+                      placeholder="Ex.: Travesseiro Adjust"
+                    />
                   </label>
                   <label class="field">
                     <span>Alias</span>
-                    <input id="product-model-alias" type="text" placeholder="Ex.: adjust">
+                    <input id="product-model-alias" type="text" placeholder="Ex.: adjust" />
                   </label>
                   <label class="field field-full">
                     <span>Notas de fidelidade</span>
-                    <textarea id="product-model-notes" rows="3" placeholder="Ex.: manter formato, costuras, volume, tecido e etiqueta exatamente como no produto real"></textarea>
+                    <textarea
+                      id="product-model-notes"
+                      rows="3"
+                      placeholder="Ex.: manter formato, costuras, volume, tecido e etiqueta exatamente como no produto real"
+                    ></textarea>
                   </label>
                   <div class="field field-full">
                     <span>Imagens do modelo</span>
                     <label class="reference-upload" for="product-model-images">
-                      <input id="product-model-images" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+                      <input
+                        id="product-model-images"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        multiple
+                      />
                       <strong>Upload do modelo</strong>
                       <p>PNG, JPG ou WEBP &bull; até 4 arquivos</p>
                     </label>
@@ -371,7 +488,9 @@
                     <p class="reference-empty">Nenhuma imagem do modelo selecionada.</p>
                   </div>
                   <div class="product-model-create-actions">
-                    <button id="save-product-model" class="ghost-button" type="button">Salvar modelo</button>
+                    <button id="save-product-model" class="ghost-button" type="button">
+                      Salvar modelo
+                    </button>
                   </div>
                 </div>
                 <div id="product-model-list" class="product-model-list">
@@ -387,20 +506,33 @@
                 <div class="product-model-create-grid">
                   <label class="field">
                     <span>Nome do template</span>
-                    <input id="image-template-name" type="text" placeholder="Ex.: Hero clean premium">
+                    <input
+                      id="image-template-name"
+                      type="text"
+                      placeholder="Ex.: Hero clean premium"
+                    />
                   </label>
                   <label class="field">
                     <span>Alias</span>
-                    <input id="image-template-alias" type="text" placeholder="Ex.: hero-clean">
+                    <input id="image-template-alias" type="text" placeholder="Ex.: hero-clean" />
                   </label>
                   <label class="field field-full">
                     <span>Notas do template</span>
-                    <textarea id="image-template-notes" rows="3" placeholder="Ex.: fundo suave, iluminacao lateral elegante, composicao central, sombra macia, look premium"></textarea>
+                    <textarea
+                      id="image-template-notes"
+                      rows="3"
+                      placeholder="Ex.: fundo suave, iluminacao lateral elegante, composicao central, sombra macia, look premium"
+                    ></textarea>
                   </label>
                   <div class="field field-full">
                     <span>Imagens de referência do template</span>
                     <label class="reference-upload" for="image-template-images">
-                      <input id="image-template-images" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+                      <input
+                        id="image-template-images"
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        multiple
+                      />
                       <strong>Upload do template</strong>
                       <p>PNG, JPG ou WEBP &bull; até 4 arquivos</p>
                     </label>
@@ -409,7 +541,9 @@
                     <p class="reference-empty">Nenhuma imagem do template selecionada.</p>
                   </div>
                   <div class="product-model-create-actions">
-                    <button id="save-image-template" class="ghost-button" type="button">Salvar template</button>
+                    <button id="save-image-template" class="ghost-button" type="button">
+                      Salvar template
+                    </button>
                   </div>
                 </div>
                 <div id="image-template-list" class="product-model-list">
@@ -423,7 +557,7 @@
             <div class="toolbar-grid">
               <label class="toolbar-field">
                 <span>Buscar prompt</span>
-                <input id="search-input" type="search" placeholder="Ex.: gato, produto, praia">
+                <input id="search-input" type="search" placeholder="Ex.: gato, produto, praia" />
               </label>
               <label class="toolbar-field">
                 <span>Filtrar fila</span>
@@ -461,30 +595,52 @@
                 </select>
               </label>
               <div class="toolbar-actions">
-                <button id="clear-filters" class="ghost-button" type="button">Limpar filtros</button>
-                <button id="select-all-media" class="ghost-button" type="button">Selecionar tudo</button>
-                <button id="download-all-media" class="ghost-button" type="button">Baixar selecionados</button>
-                <button id="clear-all-media" class="ghost-button ghost-button-danger" type="button">Remover selecionados</button>
+                <button id="clear-filters" class="ghost-button" type="button">
+                  Limpar filtros
+                </button>
+                <button id="select-all-media" class="ghost-button" type="button">
+                  Selecionar tudo
+                </button>
+                <button id="download-all-media" class="ghost-button" type="button">
+                  Baixar selecionados
+                </button>
+                <button id="clear-all-media" class="ghost-button ghost-button-danger" type="button">
+                  Remover selecionados
+                </button>
               </div>
               <div class="folder-toolbar">
                 <label class="toolbar-field">
                   <span>Filtro de pasta</span>
-                  <input id="folder-filter" type="search" placeholder="Ex.: campanha/verao">
+                  <input id="folder-filter" type="search" placeholder="Ex.: campanha/verao" />
                 </label>
                 <div class="folder-toolbar-actions">
-                  <button id="create-folder-button" class="ghost-button" type="button">Criar pasta</button>
-                  <button id="organize-selected-button" class="ghost-button" type="button">Organizar selecionados</button>
+                  <button id="create-folder-button" class="ghost-button" type="button">
+                    Criar pasta
+                  </button>
+                  <button id="organize-selected-button" class="ghost-button" type="button">
+                    Organizar selecionados
+                  </button>
                 </div>
               </div>
             </div>
           </section>
 
-          <section class="panel folder-panel collapsible-section" data-collapsible-section="folders">
+          <section
+            class="panel folder-panel collapsible-section"
+            data-collapsible-section="folders"
+          >
             <div class="section-head">
               <h2>Pastas</h2>
               <div class="section-head-actions">
                 <p id="folder-summary" class="queue-summary">Carregando pastas...</p>
-                <button class="panel-expand-button section-collapse-button" type="button" data-toggle-section="folders" aria-label="Minimizar Pastas" aria-expanded="true" title="Minimizar Pastas">
+                <button
+                  class="panel-expand-button section-collapse-button"
+                  type="button"
+                  data-toggle-section="folders"
+                  aria-label="Minimizar Pastas"
+                  aria-expanded="true"
+                  title="Minimizar Pastas"
+                >
                   <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
                     <path d="M6 12h12"></path>
                     <path class="section-collapse-icon-vertical" d="M12 6v12"></path>
@@ -503,7 +659,14 @@
                 <h2>Fila de Geração</h2>
                 <div class="section-head-actions">
                   <p id="queue-summary" class="queue-summary">Nenhum job na fila.</p>
-                <button class="panel-expand-button section-collapse-button" type="button" data-toggle-section="queue" aria-label="Minimizar Fila de Geração" aria-expanded="true" title="Minimizar Fila de Geração">
+                  <button
+                    class="panel-expand-button section-collapse-button"
+                    type="button"
+                    data-toggle-section="queue"
+                    aria-label="Minimizar Fila de Geração"
+                    aria-expanded="true"
+                    title="Minimizar Fila de Geração"
+                  >
                     <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
                       <path d="M6 12h12"></path>
                       <path class="section-collapse-icon-vertical" d="M12 6v12"></path>
@@ -517,7 +680,10 @@
             </section>
           </section>
 
-          <section class="panel gallery-panel collapsible-section" data-collapsible-section="gallery">
+          <section
+            class="panel gallery-panel collapsible-section"
+            data-collapsible-section="gallery"
+          >
             <div class="section-head">
               <h2>Galeria</h2>
               <div class="section-head-actions">
@@ -529,10 +695,27 @@
                     <option value="">Sem pasta</option>
                   </select>
                 </label>
-                <button id="select-gallery-bulk" class="ghost-button" type="button">Selecionar todos</button>
-                <button id="download-gallery-bulk" class="ghost-button" type="button">Baixar selecionados</button>
-                <button id="clear-gallery-bulk" class="ghost-button ghost-button-danger" type="button">Remover selecionados</button>
-                <button class="panel-expand-button section-collapse-button" type="button" data-toggle-section="gallery" aria-label="Minimizar Galeria" aria-expanded="true" title="Minimizar Galeria">
+                <button id="select-gallery-bulk" class="ghost-button" type="button">
+                  Selecionar todos
+                </button>
+                <button id="download-gallery-bulk" class="ghost-button" type="button">
+                  Baixar selecionados
+                </button>
+                <button
+                  id="clear-gallery-bulk"
+                  class="ghost-button ghost-button-danger"
+                  type="button"
+                >
+                  Remover selecionados
+                </button>
+                <button
+                  class="panel-expand-button section-collapse-button"
+                  type="button"
+                  data-toggle-section="gallery"
+                  aria-label="Minimizar Galeria"
+                  aria-expanded="true"
+                  title="Minimizar Galeria"
+                >
                   <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
                     <path d="M6 12h12"></path>
                     <path class="section-collapse-icon-vertical" d="M12 6v12"></path>
@@ -545,7 +728,10 @@
             </div>
           </section>
 
-          <section class="panel gallery-panel collapsible-section" data-collapsible-section="cutouts">
+          <section
+            class="panel gallery-panel collapsible-section"
+            data-collapsible-section="cutouts"
+          >
             <div class="section-head">
               <h2>Remover fundo</h2>
               <div class="section-head-actions">
@@ -557,10 +743,27 @@
                     <option value="">Sem pasta</option>
                   </select>
                 </label>
-                <button id="select-cutouts-bulk" class="ghost-button" type="button">Selecionar todos</button>
-                <button id="download-cutouts-bulk" class="ghost-button" type="button">Baixar selecionados</button>
-                <button id="clear-cutouts-bulk" class="ghost-button ghost-button-danger" type="button">Remover selecionados</button>
-                <button class="panel-expand-button section-collapse-button" type="button" data-toggle-section="cutouts" aria-label="Minimizar Remover fundo" aria-expanded="true" title="Minimizar Remover fundo">
+                <button id="select-cutouts-bulk" class="ghost-button" type="button">
+                  Selecionar todos
+                </button>
+                <button id="download-cutouts-bulk" class="ghost-button" type="button">
+                  Baixar selecionados
+                </button>
+                <button
+                  id="clear-cutouts-bulk"
+                  class="ghost-button ghost-button-danger"
+                  type="button"
+                >
+                  Remover selecionados
+                </button>
+                <button
+                  class="panel-expand-button section-collapse-button"
+                  type="button"
+                  data-toggle-section="cutouts"
+                  aria-label="Minimizar Remover fundo"
+                  aria-expanded="true"
+                  title="Minimizar Remover fundo"
+                >
                   <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
                     <path d="M6 12h12"></path>
                     <path class="section-collapse-icon-vertical" d="M12 6v12"></path>
@@ -569,7 +772,10 @@
               </div>
             </div>
             <div id="cutout-grid" class="gallery-grid">
-              <p class="gallery-empty">Use o botão "Remover fundo" nas imagens da galeria para criar PNGs transparentes aqui.</p>
+              <p class="gallery-empty">
+                Use o botão "Remover fundo" nas imagens da galeria para criar PNGs transparentes
+                aqui.
+              </p>
             </div>
           </section>
 
@@ -585,10 +791,27 @@
                     <option value="">Sem pasta</option>
                   </select>
                 </label>
-                <button id="select-crops-bulk" class="ghost-button" type="button">Selecionar todos</button>
-                <button id="download-crops-bulk" class="ghost-button" type="button">Baixar selecionados</button>
-                <button id="clear-crops-bulk" class="ghost-button ghost-button-danger" type="button">Remover selecionados</button>
-                <button class="panel-expand-button section-collapse-button" type="button" data-toggle-section="crops" aria-label="Minimizar Recortes" aria-expanded="true" title="Minimizar Recortes">
+                <button id="select-crops-bulk" class="ghost-button" type="button">
+                  Selecionar todos
+                </button>
+                <button id="download-crops-bulk" class="ghost-button" type="button">
+                  Baixar selecionados
+                </button>
+                <button
+                  id="clear-crops-bulk"
+                  class="ghost-button ghost-button-danger"
+                  type="button"
+                >
+                  Remover selecionados
+                </button>
+                <button
+                  class="panel-expand-button section-collapse-button"
+                  type="button"
+                  data-toggle-section="crops"
+                  aria-label="Minimizar Recortes"
+                  aria-expanded="true"
+                  title="Minimizar Recortes"
+                >
                   <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
                     <path d="M6 12h12"></path>
                     <path class="section-collapse-icon-vertical" d="M12 6v12"></path>
@@ -597,7 +820,9 @@
               </div>
             </div>
             <div id="crop-grid" class="gallery-grid">
-              <p class="gallery-empty">Use o botão "Recortar" nas imagens da galeria para salvar recortes aqui.</p>
+              <p class="gallery-empty">
+                Use o botão "Recortar" nas imagens da galeria para salvar recortes aqui.
+              </p>
             </div>
           </section>
         </section>
@@ -609,7 +834,9 @@
         <div class="region-editor-head">
           <div>
             <h2 id="region-editor-title">Selecionar região</h2>
-            <p id="region-editor-description">Arraste sobre a imagem para marcar a área que deseja editar.</p>
+            <p id="region-editor-description">
+              Arraste sobre a imagem para marcar a área que deseja editar.
+            </p>
           </div>
           <button class="ghost-button" type="button" id="close-region-editor">Fechar</button>
         </div>
@@ -620,7 +847,9 @@
           Arraste para criar a seleção. Depois mova ou ajuste pelas bordas.
         </div>
         <div class="region-editor-actions">
-          <button class="ghost-button" type="button" id="reset-region-selection">Limpar seleção</button>
+          <button class="ghost-button" type="button" id="reset-region-selection">
+            Limpar seleção
+          </button>
           <button type="button" id="apply-region-selection">Usar região</button>
         </div>
       </form>
@@ -634,7 +863,13 @@
         </div>
         <div class="confirm-dialog-actions">
           <button class="ghost-button" type="button" id="confirm-dialog-cancel">Cancelar</button>
-          <button class="ghost-button ghost-button-danger" type="button" id="confirm-dialog-confirm">Remover</button>
+          <button
+            class="ghost-button ghost-button-danger"
+            type="button"
+            id="confirm-dialog-confirm"
+          >
+            Remover
+          </button>
         </div>
       </form>
     </dialog>
@@ -652,7 +887,7 @@
         <div class="folder-dialog-section">
           <label class="toolbar-field">
             <span>Nova pasta</span>
-            <input id="folder-dialog-input" type="text" placeholder="Ex.: campanha/verao">
+            <input id="folder-dialog-input" type="text" placeholder="Ex.: campanha/verao" />
           </label>
         </div>
         <div class="folder-dialog-section">
@@ -664,7 +899,9 @@
           </div>
         </div>
         <div class="confirm-dialog-actions">
-          <button class="ghost-button" type="button" id="folder-dialog-clear">Tirar da pasta</button>
+          <button class="ghost-button" type="button" id="folder-dialog-clear">
+            Tirar da pasta
+          </button>
           <button class="ghost-button" type="button" id="folder-dialog-cancel">Cancelar</button>
           <button type="button" id="folder-dialog-confirm">Salvar pasta</button>
         </div>

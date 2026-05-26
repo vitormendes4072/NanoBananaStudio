@@ -7,40 +7,47 @@
 ## 1. Proposta do Projeto
 
 ### O problema está claro?
+
 **Sim, mas poderia ser mais bem comunicado.**
 
 O projeto resolve um problema real e específico: fotografia de produto com IA é cara, lenta e dependente de fotógrafos. A plataforma automatiza isso via Google Gemini — gera imagens, remove fundos, gerencia ativos e rastreia custos. A proposta é válida e não genérica.
 
-O README apresenta bem a stack, mas não comunica o *valor de negócio* com a clareza necessária para um recrutador entender em 30 segundos o que o projeto faz e por que existe.
+O README apresenta bem a stack, mas não comunica o _valor de negócio_ com a clareza necessária para um recrutador entender em 30 segundos o que o projeto faz e por que existe.
 
 ### A ideia tem valor real?
+
 **Sim.** Ferramentas de geração de imagem para e-commerce são um mercado bilionário. O diferencial aqui não é "mais um wrapper de IA" — é a combinação de:
+
 - Pipeline completo (gerar → remover fundo → recortar → organizar → exportar)
 - Controle de custos por modelo
 - Sistema de templates reutilizáveis
 - Gestão de galeria local-first
 
 ### Como posicionar como produto?
-**Posicionamento sugerido:** *"Studio de fotografia de produto com IA — pipeline completo do prompt à exportação, com controle de custos e templates reutilizáveis, sem assinatura mensal."*
+
+**Posicionamento sugerido:** _"Studio de fotografia de produto com IA — pipeline completo do prompt à exportação, com controle de custos e templates reutilizáveis, sem assinatura mensal."_
 
 ---
 
 ## 2. Experiência do Usuário
 
 ### Fluxo principal
+
 O fluxo de trabalho central — compor prompt → gerar imagem → remover fundo → recortar → organizar — é coerente e fluído. A arquitetura de fila com SSE para feedback em tempo real é uma escolha técnica acertada que reflete em boa UX.
 
 ### Pontos de atrito identificados
-| Atrito | Impacto | Prioridade |
-|--------|---------|------------|
-| Sem dark mode | Uso prolongado cansativo | Média |
-| Region editor sem suporte touch | Inacessível em tablets | Alta |
-| Sem estado de loading visível em alguns botões | Confusão sobre se a ação funcionou | Alta |
-| Erros inconsistentes (ora toast, ora status box) | Previsibilidade baixa | Média |
-| Sem paginação/virtualização na galeria | Lentidão com 100+ itens | Alta |
-| Sem atalhos de teclado documentados | Produtividade limitada para power users | Baixa |
+
+| Atrito                                           | Impacto                                 | Prioridade |
+| ------------------------------------------------ | --------------------------------------- | ---------- |
+| Sem dark mode                                    | Uso prolongado cansativo                | Média      |
+| Region editor sem suporte touch                  | Inacessível em tablets                  | Alta       |
+| Sem estado de loading visível em alguns botões   | Confusão sobre se a ação funcionou      | Alta       |
+| Erros inconsistentes (ora toast, ora status box) | Previsibilidade baixa                   | Média      |
+| Sem paginação/virtualização na galeria           | Lentidão com 100+ itens                 | Alta       |
+| Sem atalhos de teclado documentados              | Produtividade limitada para power users | Baixa      |
 
 ### A interface transmite profissionalismo?
+
 **Parcialmente.** O glassmorphism e as animações de shimmer indicam cuidado visual. A ausência de dark mode, a inconsistência no tratamento de erros e a falta de estados de loading explícitos em ações críticas reduzem a percepção de polimento.
 
 ---
@@ -48,6 +55,7 @@ O fluxo de trabalho central — compor prompt → gerar imagem → remover fundo
 ## 3. Funcionalidades
 
 ### Features fortes
+
 - **Sistema de fila com SSE** — substitui polling por streaming real; elegante e eficiente
 - **Custo por modelo em tempo real** — diferencial raro mesmo em produtos comerciais
 - **Templates de produto e imagem** — reutilização produtiva, não só geração aleatória
@@ -56,17 +64,20 @@ O fluxo de trabalho central — compor prompt → gerar imagem → remover fundo
 - **Onboarding no empty state da galeria** — atenção ao estado zero; detalhe que conta
 
 ### Features superficiais
+
 - **Analytics:** Apenas gráfico de 30 dias e distribuição por modelo. Sem filtro de período, sem comparação, sem projeção de custo.
 - **Avaliação de produto model:** Lança prompt para Gemini e exibe resultado bruto — sem estrutura, sem critérios padronizados.
 - **Sistema de pastas:** Presente mas sem hierarquia real ou drag-and-drop.
 
 ### O que falta para parecer mais completo
+
 1. Exportação em lote (ZIP download dos assets gerados)
 2. Histórico de versões por imagem (regenerações com comparação lado a lado)
 3. Prévia do prompt antes de gerar (dry-run com estimativa de custo)
 4. Modo de comparação A/B entre resultados de modelos diferentes
 
 ### Diferenciais que destacariam no portfólio
+
 - **Exportação para Shopify/WooCommerce** (via API ou CSV de metadados)
 - **Modo batch com variações automáticas** (mesmo produto, múltiplos ângulos/fundos)
 - **Estimativa de custo antes de gerar** (input: modelo + quantidade → output: custo estimado)
@@ -76,9 +87,11 @@ O fluxo de trabalho central — compor prompt → gerar imagem → remover fundo
 ## 4. Qualidade Técnica
 
 ### Arquitetura geral
+
 **Nota: 7/10**
 
 A separação em camadas está bem executada:
+
 ```
 server/
   routes/     ← handlers HTTP finos, sem lógica de negócio
@@ -101,7 +114,7 @@ O backend está bem estruturado. O frontend tem boas ideias (módulos de render 
 
 ```js
 // src/deps.js
-export default {};  // objeto vazio compartilhado por todos os módulos
+export default {}; // objeto vazio compartilhado por todos os módulos
 
 // Qualquer módulo pode fazer:
 deps.renderJobs = renderJobQueue;
@@ -137,6 +150,7 @@ get jobs() {
 Em 100 jobs, cada request ao estado deserializa 100 JSONs. Sem cache, sem invalidação seletiva.
 
 ### Escalabilidade
+
 O projeto foi projetado para uso local single-user, e isso é honesto. Para multi-user seria necessário autenticação, isolamento de dados por usuário e substituição do better-sqlite3 por PostgreSQL. Não é um problema — mas precisa ser comunicado claramente.
 
 ---
@@ -144,7 +158,9 @@ O projeto foi projetado para uso local single-user, e isso é honesto. Para mult
 ## 5. Banco de Dados e Regras de Negócio
 
 ### O modelo de dados faz sentido?
+
 Sim. As entidades principais são bem definidas:
+
 - `jobs` — geração de imagem (core)
 - `cutouts` — remoção de fundo
 - `crops` — recortes
@@ -170,37 +186,42 @@ Criar dois product models com o mesmo nome gera o mesmo alias, e o segundo sobre
 ### Problemas identificados
 
 #### CRÍTICO: Path Traversal em `/api/thumb`
+
 ```js
 // server/routes/media.js
-if (src.includes("..")) return res.status(400).json({ error: "Invalid src" });
-const targetPath = path.join(generatedDir, src.replace("/generated/", ""));
+if (src.includes('..')) return res.status(400).json({ error: 'Invalid src' });
+const targetPath = path.join(generatedDir, src.replace('/generated/', ''));
 ```
 
 A checagem com `includes("..")` é bypassável com codificação URL (`%2e%2e`) ou caminhos unicode. O correto:
 
 ```js
-const resolved = path.resolve(generatedDir, src.replace(/^\/generated\//, ""));
+const resolved = path.resolve(generatedDir, src.replace(/^\/generated\//, ''));
 const relative = path.relative(generatedDir, resolved);
-if (relative.startsWith("..") || path.isAbsolute(relative)) {
-  return res.status(400).json({ error: "Invalid path" });
+if (relative.startsWith('..') || path.isAbsolute(relative)) {
+  return res.status(400).json({ error: 'Invalid path' });
 }
 ```
 
 #### MÉDIO: Race condition no background removal
+
 ```js
 if (state.backgroundRemovalInFlight) throw error;
-state.backgroundRemovalInFlight = true;  // Não atômico
+state.backgroundRemovalInFlight = true; // Não atômico
 ```
 
 Duas requisições simultâneas podem passar a checagem antes de qualquer uma setar o flag.
 
 #### MÉDIO: Sem CSRF tokens
+
 Endpoints de mutação (POST, DELETE) não validam CSRF. Mitigado por ser SPA same-origin, mas inadequado se a porta ficar exposta na rede local.
 
 #### BAIXO: API key em headers de fetch
+
 A chave Gemini trafega em headers HTTP. Se logging de requests estiver ativo (debug), a chave aparece nos logs.
 
 ### O projeto está seguro o suficiente para apresentar?
+
 **Sim, com ressalvas.** Para uso local e demo, está adequado. O path traversal deve ser corrigido antes de qualquer exposição pública — é o único vetor real de ataque.
 
 ---
@@ -209,15 +230,16 @@ A chave Gemini trafega em headers HTTP. Se logging de requests estiver ativo (de
 
 ### Gargalos identificados
 
-| Problema | Impacto | Complexidade de correção |
-|----------|---------|--------------------------|
-| Deserialização de todos os jobs a cada acesso | Lento com 200+ jobs | Média |
-| Renderização de galeria inteira no DOM | Lentidão/travamento acima de 100 items | Alta |
-| Thumbnail generation bloqueante no request handler | Latência sob carga | Média |
-| SSE sem compressão | Payloads grandes desnecessariamente | Baixa |
-| `requestAnimationFrame` polling no composer | CPU desnecessária | Baixa |
+| Problema                                           | Impacto                                | Complexidade de correção |
+| -------------------------------------------------- | -------------------------------------- | ------------------------ |
+| Deserialização de todos os jobs a cada acesso      | Lento com 200+ jobs                    | Média                    |
+| Renderização de galeria inteira no DOM             | Lentidão/travamento acima de 100 items | Alta                     |
+| Thumbnail generation bloqueante no request handler | Latência sob carga                     | Média                    |
+| SSE sem compressão                                 | Payloads grandes desnecessariamente    | Baixa                    |
+| `requestAnimationFrame` polling no composer        | CPU desnecessária                      | Baixa                    |
 
 ### O carregamento está aceitável?
+
 Para volumes pequenos (< 50 jobs), sim. Para uso intenso (200+ imagens geradas), a galeria começa a travar. Isso é um ponto de atenção direto para recrutadores que testarem o projeto.
 
 ---
@@ -225,12 +247,15 @@ Para volumes pequenos (< 50 jobs), sim. Para uso intenso (200+ imagens geradas),
 ## 8. Design e Apresentação
 
 ### O visual parece moderno?
+
 **Sim, parcialmente.** O glassmorphism, as variáveis CSS bem estruturadas e as animações de shimmer indicam consciência de design. O layout de grid responsivo funciona.
 
 ### O projeto tem identidade própria?
+
 **Sim.** "Nano Banana Studio" tem nome próprio, parece um produto, não um tutorial. A paleta e o tom visual são consistentes.
 
 ### O design ajuda ou prejudica?
+
 O design ajuda — mas a ausência de dark mode e o tratamento inconsistente de erros (ora toast, ora mensagem inline, ora silêncio) prejudicam a percepção de acabamento. Um recrutador que usar o projeto por 10 minutos vai notar.
 
 ---
@@ -238,15 +263,18 @@ O design ajuda — mas a ausência de dark mode e o tratamento inconsistente de 
 ## 9. Potencial para Portfólio
 
 ### Esse projeto é bom o suficiente para o currículo?
+
 **Sim — com melhorias pontuais.** Hoje está em ~70% do potencial. Com as correções críticas e mais dois diferenciais implementados, vai a 90%+.
 
 O projeto já demonstra:
+
 - Integração real com API de IA (Gemini)
 - Arquitetura full-stack madura (Express 5, SQLite, Vite, Vanilla JS)
 - Escolhas técnicas não triviais (SSE, on-device ML, rate limiting, migrations)
 - Atenção a UX (empty states, feedback de status, custo em tempo real)
 
 O que ainda enfraquece:
+
 - Ausência de autenticação (mesmo que básica)
 - Testes só smoke (sem unitários)
 - Sem documentação de como rodar localmente além do README
@@ -254,9 +282,11 @@ O que ainda enfraquece:
 ### Como descrever no LinkedIn/GitHub/Currículo
 
 **Versão curta (currículo):**
+
 > Plataforma local-first de fotografia de produto com IA — pipeline completo de geração, remoção de fundo e gestão de ativos via Google Gemini. Stack: Node.js, Express 5, SQLite, Vanilla JS + Vite. Destaques: sistema de fila com SSE, remoção de fundo on-device, rastreamento de custos por modelo e templates reutilizáveis.
 
 **Versão LinkedIn (post/about):**
+
 > Construí o Nano Banana Studio, uma plataforma local-first para geração de fotografia de produto com IA. O projeto integra Google Gemini para geração de imagens, remoção de fundo on-device (sem API externa), sistema de fila com Server-Sent Events para feedback em tempo real, e dashboard de analytics de custos. Stack intencional sem frameworks frontend: Vanilla JS + CSS + Vite, garantindo bundle mínimo e código sem abstrações desnecessárias. Backend: Node.js, Express 5, SQLite com WAL mode e migrações versionadas.
 
 ---
@@ -327,15 +357,19 @@ O que ainda enfraquece:
 ## Descrição Melhorada para Portfólio
 
 ### Título
+
 **Nano Banana Studio** — Plataforma de fotografia de produto com IA
 
 ### Tagline
-*Pipeline completo de geração, remoção de fundo e gestão de ativos com Google Gemini — local-first, sem assinatura.*
+
+_Pipeline completo de geração, remoção de fundo e gestão de ativos com Google Gemini — local-first, sem assinatura._
 
 ### Descrição técnica
+
 Plataforma full-stack para automação de fotografia de produto com IA. O sistema orquestra geração de imagens via Google Gemini, remoção de fundo on-device (sem API externa, privacidade preservada), recorte por região, organização em pastas e rastreamento granular de custos por modelo.
 
 **Destaques de engenharia:**
+
 - Sistema de fila assíncrona com workers configuráveis (1–5) e crash recovery automático
 - Server-Sent Events para feedback em tempo real, substituindo polling
 - Remoção de fundo via WebAssembly on-device (@imgly/background-removal-node)

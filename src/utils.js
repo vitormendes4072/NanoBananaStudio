@@ -1,42 +1,44 @@
+import { MODEL_INFO } from './state.js';
+
 export function normalizeFolderValue(value) {
-  return String(value || "")
-    .replace(/\\/g, "/")
-    .split("/")
+  return String(value || '')
+    .replace(/\\/g, '/')
+    .split('/')
     .map((segment) => segment.trim())
     .filter(Boolean)
-    .join("/")
+    .join('/')
     .slice(0, 120);
 }
 
 export function formatDate(value) {
   if (!value) {
-    return "";
+    return '';
   }
 
-  return new Date(value).toLocaleTimeString("pt-BR");
+  return new Date(value).toLocaleTimeString('pt-BR');
 }
 
 export function formatRelativeDateTime(value) {
   if (!value) {
-    return "";
+    return '';
   }
 
   const parsedDate = new Date(value);
   if (Number.isNaN(parsedDate.getTime())) {
-    return "";
+    return '';
   }
 
-  return parsedDate.toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
+  return parsedDate.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 }
 
 export function formatBytes(value) {
   if (!Number.isFinite(value)) {
-    return "";
+    return '';
   }
 
   if (value < 1024 * 1024) {
@@ -48,7 +50,7 @@ export function formatBytes(value) {
 
 export function buildVersionLabel(job) {
   if (!job.batchIndex || !job.batchTotal) {
-    return "";
+    return '';
   }
 
   return `<span class="queue-version">Versao ${job.batchIndex}/${job.batchTotal}</span>`;
@@ -60,11 +62,11 @@ export function modelLabel(modelId) {
 
 export function escapeHtml(value) {
   return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
 
 export async function fileToBase64(file) {
@@ -85,7 +87,7 @@ export function base64ToFile(base64, name, mimeType) {
 export function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer);
   const chunkSize = 0x8000;
-  let binary = "";
+  let binary = '';
 
   for (let index = 0; index < bytes.length; index += chunkSize) {
     const chunk = bytes.subarray(index, index + chunkSize);
@@ -96,26 +98,26 @@ export function arrayBufferToBase64(buffer) {
 }
 
 export function slugifyProductModelAlias(value) {
-  return String(value || "")
+  return String(value || '')
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/^@+/, "")
-    .replace(/[^a-z0-9_-]+/g, "-")
-    .replace(/-{2,}/g, "-")
-    .replace(/^[-_]+|[-_]+$/g, "")
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/^@+/, '')
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^[-_]+|[-_]+$/g, '')
     .slice(0, 40);
 }
 
 export function slugifyImageTemplateAlias(value) {
-  return String(value || "")
+  return String(value || '')
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/^#+/, "")
-    .replace(/[^a-z0-9_-]+/g, "-")
-    .replace(/-{2,}/g, "-")
-    .replace(/^[-_]+|[-_]+$/g, "")
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/^#+/, '')
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^[-_]+|[-_]+$/g, '')
     .slice(0, 40);
 }
 

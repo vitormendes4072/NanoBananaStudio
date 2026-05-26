@@ -1,4 +1,4 @@
-import deps from "./deps.js";
+import deps from './deps.js';
 import {
   state,
   MAX_REFERENCE_IMAGES,
@@ -7,25 +7,17 @@ import {
   selectedGalleryIds,
   selectedCutoutIds,
   selectedCropIds,
-} from "./state.js";
-import {
-  normalizeFolderValue,
-  escapeHtml,
-  fileToBase64,
-  showToast,
-} from "./utils.js";
+} from './state.js';
+import { normalizeFolderValue, escapeHtml, fileToBase64, showToast } from './utils.js';
 import {
   CUSTOM_PRESETS_STORAGE_KEY,
   loadCustomPromptPresetsFromStorage,
-} from "./prompt-presets-store.js";
+} from './prompt-presets-store.js';
 import {
   form,
   promptInput,
   negativePromptInput,
   promptAutocomplete,
-  promptStrengthSelect,
-  renderFocusSelect,
-  aspectRatioSelect,
   customPresetNameInput,
   saveCustomPresetButton,
   advancedPromptPanel,
@@ -67,21 +59,20 @@ import {
   quantitySelect,
   appLayout,
   composerPanel,
-  regionEditor,
-} from "./dom.js";
+} from './dom.js';
 
-import "./selection.js";
-import "./render-usage.js";
-import "./render-analytics.js";
-import "./render-folders.js";
-import "./render-queue.js";
-import "./render-media.js";
-import "./prompt.js";
-import "./render-library.js";
-import "./dialogs.js";
-import "./composer.js";
-import "./events.js";
-import "./region-editor.js";
+import './selection.js';
+import './render-usage.js';
+import './render-analytics.js';
+import './render-folders.js';
+import './render-queue.js';
+import './render-media.js';
+import './prompt.js';
+import './render-library.js';
+import './dialogs.js';
+import './composer.js';
+import './events.js';
+import './region-editor.js';
 import {
   refreshJobs,
   refreshUsage,
@@ -90,8 +81,8 @@ import {
   refreshProductModels,
   refreshImageTemplates,
   connectSSE,
-} from "./api.js";
-import { refreshAnalytics } from "./render-analytics.js";
+} from './api.js';
+import { refreshAnalytics } from './render-analytics.js';
 
 bootstrap();
 
@@ -159,34 +150,34 @@ async function refreshInitialData() {
 }
 
 function bindPromptEvents() {
-  promptInput?.addEventListener("input", () => {
+  promptInput?.addEventListener('input', () => {
     deps.renderPromptProductModelMentions();
     deps.renderPromptImageTemplateMentions();
     deps.updatePromptAutocomplete();
   });
-  promptInput?.addEventListener("click", () => deps.updatePromptAutocomplete());
-  promptInput?.addEventListener("keyup", (event) => {
-    if (["ArrowUp", "ArrowDown", "Enter", "Tab", "Escape"].includes(event.key)) {
+  promptInput?.addEventListener('click', () => deps.updatePromptAutocomplete());
+  promptInput?.addEventListener('keyup', (event) => {
+    if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(event.key)) {
       return;
     }
     deps.updatePromptAutocomplete();
   });
-  promptInput?.addEventListener("blur", () => {
+  promptInput?.addEventListener('blur', () => {
     window.setTimeout(() => deps.hidePromptAutocomplete(), 120);
   });
-  promptInput?.addEventListener("keydown", deps.handlePromptAutocompleteKeydown);
+  promptInput?.addEventListener('keydown', deps.handlePromptAutocompleteKeydown);
 
-  for (const button of document.querySelectorAll("[data-prompt-preset]")) {
-    button.addEventListener("click", () => deps.applyPromptPreset(button.dataset.promptPreset));
+  for (const button of document.querySelectorAll('[data-prompt-preset]')) {
+    button.addEventListener('click', () => deps.applyPromptPreset(button.dataset.promptPreset));
   }
-  saveCustomPresetButton?.addEventListener("click", deps.saveCurrentPromptPreset);
-  customPresetNameInput?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
+  saveCustomPresetButton?.addEventListener('click', deps.saveCurrentPromptPreset);
+  customPresetNameInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
       event.preventDefault();
       deps.saveCurrentPromptPreset();
     }
   });
-  promptAutocomplete?.addEventListener("mousedown", (event) => event.preventDefault());
+  promptAutocomplete?.addEventListener('mousedown', (event) => event.preventDefault());
 }
 
 function bindFilterEvents() {
@@ -197,132 +188,146 @@ function bindFilterEvents() {
     deps.renderFolderBoard();
   };
 
-  searchInput?.addEventListener("input", () => deps.renderJobs(state.lastJobs));
-  queueFilter?.addEventListener("change", () => deps.renderJobs(state.lastJobs));
-  queueModelFilter?.addEventListener("change", () => deps.renderJobs(state.lastJobs));
-  galleryFilter?.addEventListener("change", () => deps.renderJobs(state.lastJobs));
-  galleryFolderFilter?.addEventListener("change", () => deps.renderJobs(state.lastJobs));
-  cutoutFolderFilter?.addEventListener("change", () => deps.renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId)));
-  cropFolderFilter?.addEventListener("change", () => deps.renderCrops(state.lastCrops));
-  viewModeSelect?.addEventListener("change", rerenderAll);
-  folderFilterInput?.addEventListener("input", rerenderAll);
+  searchInput?.addEventListener('input', () => deps.renderJobs(state.lastJobs));
+  queueFilter?.addEventListener('change', () => deps.renderJobs(state.lastJobs));
+  queueModelFilter?.addEventListener('change', () => deps.renderJobs(state.lastJobs));
+  galleryFilter?.addEventListener('change', () => deps.renderJobs(state.lastJobs));
+  galleryFolderFilter?.addEventListener('change', () => deps.renderJobs(state.lastJobs));
+  cutoutFolderFilter?.addEventListener('change', () =>
+    deps.renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId))
+  );
+  cropFolderFilter?.addEventListener('change', () => deps.renderCrops(state.lastCrops));
+  viewModeSelect?.addEventListener('change', rerenderAll);
+  folderFilterInput?.addEventListener('input', rerenderAll);
 
-  clearFiltersButton?.addEventListener("click", () => {
-    if (searchInput) searchInput.value = "";
-    if (queueFilter) queueFilter.value = "active";
-    if (queueModelFilter) queueModelFilter.value = "all";
-    if (galleryFilter) galleryFilter.value = "all";
-    if (viewModeSelect) viewModeSelect.value = "grid";
-    if (folderFilterInput) folderFilterInput.value = "";
-    if (galleryFolderFilter) galleryFolderFilter.value = "all";
-    if (cutoutFolderFilter) cutoutFolderFilter.value = "all";
-    if (cropFolderFilter) cropFolderFilter.value = "all";
+  clearFiltersButton?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    if (queueFilter) queueFilter.value = 'active';
+    if (queueModelFilter) queueModelFilter.value = 'all';
+    if (galleryFilter) galleryFilter.value = 'all';
+    if (viewModeSelect) viewModeSelect.value = 'grid';
+    if (folderFilterInput) folderFilterInput.value = '';
+    if (galleryFolderFilter) galleryFolderFilter.value = 'all';
+    if (cutoutFolderFilter) cutoutFolderFilter.value = 'all';
+    if (cropFolderFilter) cropFolderFilter.value = 'all';
     rerenderAll();
   });
 }
 
 function bindBulkEvents() {
-  selectGalleryBulkButton?.addEventListener("click", () => {
+  selectGalleryBulkButton?.addEventListener('click', () => {
     deps.toggleSectionSelection(
-      state.lastJobs.filter((job) => job.status === "completed" && job.result).map((job) => job.id),
+      state.lastJobs.filter((job) => job.status === 'completed' && job.result).map((job) => job.id),
       selectedGalleryIds
     );
     deps.renderJobs(state.lastJobs);
   });
-  selectCutoutsBulkButton?.addEventListener("click", () => {
-    deps.toggleSectionSelection(state.lastCutouts.map((item) => item.id), selectedCutoutIds);
+  selectCutoutsBulkButton?.addEventListener('click', () => {
+    deps.toggleSectionSelection(
+      state.lastCutouts.map((item) => item.id),
+      selectedCutoutIds
+    );
     deps.renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
   });
-  selectCropsBulkButton?.addEventListener("click", () => {
-    deps.toggleSectionSelection(state.lastCrops.map((item) => item.id), selectedCropIds);
+  selectCropsBulkButton?.addEventListener('click', () => {
+    deps.toggleSectionSelection(
+      state.lastCrops.map((item) => item.id),
+      selectedCropIds
+    );
     deps.renderCrops(state.lastCrops);
   });
-  selectAllMediaButton?.addEventListener("click", toggleAllMediaSelection);
+  selectAllMediaButton?.addEventListener('click', toggleAllMediaSelection);
 
-  downloadGalleryBulkButton?.addEventListener("click", () =>
+  downloadGalleryBulkButton?.addEventListener('click', () =>
     deps.downloadSelectedItems(
-      Array.from(selectedGalleryIds).map((id) => state.lastJobs.find((job) => job.id === id)?.result).filter(Boolean),
-      "Selecione pelo menos uma imagem da Galeria para baixar.",
-      "Download da Galeria iniciado."
+      Array.from(selectedGalleryIds)
+        .map((id) => state.lastJobs.find((job) => job.id === id)?.result)
+        .filter(Boolean),
+      'Selecione pelo menos uma imagem da Galeria para baixar.',
+      'Download da Galeria iniciado.'
     )
   );
-  downloadCutoutsBulkButton?.addEventListener("click", () =>
+  downloadCutoutsBulkButton?.addEventListener('click', () =>
     deps.downloadSelectedItems(
-      Array.from(selectedCutoutIds).map((id) => state.lastCutouts.find((item) => item.id === id)).filter(Boolean),
-      "Selecione pelo menos um item em Remover fundo para baixar.",
-      "Download de Remover fundo iniciado."
+      Array.from(selectedCutoutIds)
+        .map((id) => state.lastCutouts.find((item) => item.id === id))
+        .filter(Boolean),
+      'Selecione pelo menos um item em Remover fundo para baixar.',
+      'Download de Remover fundo iniciado.'
     )
   );
-  downloadCropsBulkButton?.addEventListener("click", () =>
+  downloadCropsBulkButton?.addEventListener('click', () =>
     deps.downloadSelectedItems(
-      Array.from(selectedCropIds).map((id) => state.lastCrops.find((item) => item.id === id)).filter(Boolean),
-      "Selecione pelo menos um recorte para baixar.",
-      "Download de Recortes iniciado."
+      Array.from(selectedCropIds)
+        .map((id) => state.lastCrops.find((item) => item.id === id))
+        .filter(Boolean),
+      'Selecione pelo menos um recorte para baixar.',
+      'Download de Recortes iniciado.'
     )
   );
-  downloadAllMediaButton?.addEventListener("click", () =>
+  downloadAllMediaButton?.addEventListener('click', () =>
     deps.downloadSelectedItems(
       deps.getSelectedMediaItems(),
-      "Selecione pelo menos um item para baixar.",
-      "Download dos itens selecionados iniciado."
+      'Selecione pelo menos um item para baixar.',
+      'Download dos itens selecionados iniciado.'
     )
   );
 
-  clearGalleryBulkButton?.addEventListener("click", () =>
+  clearGalleryBulkButton?.addEventListener('click', () =>
     deps.handleBulkRemoval({
       button: clearGalleryBulkButton,
-      endpoint: "/api/jobs/bulk",
+      endpoint: '/api/jobs/bulk',
       getPayload: () => ({ ids: Array.from(selectedGalleryIds) }),
       confirmMessage: `Remover ${selectedGalleryIds.size} imagem(ns) selecionada(s) da Galeria?`,
-      loadingLabel: "Removendo...",
-      successMessage: "Imagens selecionadas removidas da Galeria.",
+      loadingLabel: 'Removendo...',
+      successMessage: 'Imagens selecionadas removidas da Galeria.',
       refreshers: [refreshJobs, refreshUsage],
     })
   );
-  clearCutoutsBulkButton?.addEventListener("click", () =>
+  clearCutoutsBulkButton?.addEventListener('click', () =>
     deps.handleBulkRemoval({
       button: clearCutoutsBulkButton,
-      endpoint: "/api/cutouts/bulk",
+      endpoint: '/api/cutouts/bulk',
       getPayload: () => ({ ids: Array.from(selectedCutoutIds) }),
       confirmMessage: `Remover ${selectedCutoutIds.size} item(ns) selecionado(s) de Remover fundo?`,
-      loadingLabel: "Removendo...",
-      successMessage: "Itens selecionados de Remover fundo removidos.",
+      loadingLabel: 'Removendo...',
+      successMessage: 'Itens selecionados de Remover fundo removidos.',
       refreshers: [refreshCutouts],
     })
   );
-  clearCropsBulkButton?.addEventListener("click", () =>
+  clearCropsBulkButton?.addEventListener('click', () =>
     deps.handleBulkRemoval({
       button: clearCropsBulkButton,
-      endpoint: "/api/crops/bulk",
+      endpoint: '/api/crops/bulk',
       getPayload: () => ({ ids: Array.from(selectedCropIds) }),
       confirmMessage: `Remover ${selectedCropIds.size} recorte(s) selecionado(s)?`,
-      loadingLabel: "Removendo...",
-      successMessage: "Recortes selecionados removidos.",
+      loadingLabel: 'Removendo...',
+      successMessage: 'Recortes selecionados removidos.',
       refreshers: [refreshCrops],
     })
   );
-  clearAllMediaButton?.addEventListener("click", () =>
+  clearAllMediaButton?.addEventListener('click', () =>
     deps.handleBulkRemoval({
       button: clearAllMediaButton,
-      endpoint: "/api/library/bulk",
+      endpoint: '/api/library/bulk',
       getPayload: () => ({
         jobs: Array.from(selectedGalleryIds),
         cutouts: Array.from(selectedCutoutIds),
         crops: Array.from(selectedCropIds),
       }),
       confirmMessage: `Remover ${selectedGalleryIds.size + selectedCutoutIds.size + selectedCropIds.size} item(ns) selecionado(s) no total?`,
-      loadingLabel: "Limpando tudo...",
-      successMessage: "Itens selecionados removidos.",
+      loadingLabel: 'Limpando tudo...',
+      successMessage: 'Itens selecionados removidos.',
       refreshers: [refreshJobs, refreshUsage, refreshCutouts, refreshCrops],
     })
   );
 }
 
 function bindFolderEvents() {
-  organizeSelectedButton?.addEventListener("click", async () => {
+  organizeSelectedButton?.addEventListener('click', async () => {
     const nextFolder = await deps.requestFolderSelection({
-      title: "Organizar selecionados",
-      message: "Selecione uma pasta existente ou digite uma nova para os itens selecionados.",
+      title: 'Organizar selecionados',
+      message: 'Selecione uma pasta existente ou digite uma nova para os itens selecionados.',
       currentFolder: deps.getSharedSelectedFolder(),
     });
     if (nextFolder !== null) {
@@ -330,16 +335,16 @@ function bindFolderEvents() {
     }
   });
 
-  createFolderButton?.addEventListener("click", async () => {
+  createFolderButton?.addEventListener('click', async () => {
     const nextFolder = await deps.requestFolderSelection({
-      title: "Criar pasta",
-      message: "Digite o nome da nova pasta ou selecione uma existente para ativar esse filtro.",
+      title: 'Criar pasta',
+      message: 'Digite o nome da nova pasta ou selecione uma existente para ativar esse filtro.',
       currentFolder: getActiveCreationFolder(),
     });
     if (nextFolder === null) return;
     const normalizedFolder = normalizeFolderValue(nextFolder);
     if (!normalizedFolder) {
-      statusBox.textContent = "Informe um nome de pasta para criar.";
+      statusBox.textContent = 'Informe um nome de pasta para criar.';
       return;
     }
     registerFolderName(normalizedFolder);
@@ -353,7 +358,7 @@ function bindFolderEvents() {
 }
 
 function bindUploadEvents() {
-  referenceInput?.addEventListener("change", () => {
+  referenceInput?.addEventListener('change', () => {
     const incomingFiles = Array.from(referenceInput.files || []);
     state.selectedReferenceFiles = incomingFiles.slice(0, MAX_REFERENCE_IMAGES);
     syncReferenceInputFiles();
@@ -362,49 +367,51 @@ function bindUploadEvents() {
       statusBox.textContent = `Use no máximo ${MAX_REFERENCE_IMAGES} imagens de referência por lote.`;
     }
   });
-  productModelImagesInput?.addEventListener("change", () => {
+  productModelImagesInput?.addEventListener('change', () => {
     const incomingFiles = Array.from(productModelImagesInput.files || []);
     state.selectedProductModelFiles = incomingFiles.slice(0, MAX_REFERENCE_IMAGES);
     deps.syncProductModelInputFiles();
     deps.renderProductModelUploadPreview();
   });
-  imageTemplateImagesInput?.addEventListener("change", () => {
+  imageTemplateImagesInput?.addEventListener('change', () => {
     const incomingFiles = Array.from(imageTemplateImagesInput.files || []);
     state.selectedImageTemplateFiles = incomingFiles.slice(0, MAX_REFERENCE_IMAGES);
     deps.syncImageTemplateInputFiles();
     deps.renderImageTemplateUploadPreview();
   });
 
-  document.querySelector("#save-product-model")?.addEventListener("click", deps.saveProductModel);
-  document.querySelector("#save-image-template")?.addEventListener("click", deps.saveImageTemplate);
+  document.querySelector('#save-product-model')?.addEventListener('click', deps.saveProductModel);
+  document.querySelector('#save-image-template')?.addEventListener('click', deps.saveImageTemplate);
 }
 
 function bindComposerEvents() {
-  window.addEventListener("scroll", deps.requestComposerPanelPinning, { passive: true });
-  window.addEventListener("resize", deps.requestComposerPanelPinning);
-  window.addEventListener("load", deps.requestComposerPanelPinning);
-  if (typeof ResizeObserver !== "undefined" && appLayout && composerPanel) {
+  window.addEventListener('scroll', deps.requestComposerPanelPinning, { passive: true });
+  window.addEventListener('resize', deps.requestComposerPanelPinning);
+  window.addEventListener('load', deps.requestComposerPanelPinning);
+  if (typeof ResizeObserver !== 'undefined' && appLayout && composerPanel) {
     const composerResizeObserver = new ResizeObserver(() => deps.requestComposerPanelPinning());
     composerResizeObserver.observe(appLayout);
     composerResizeObserver.observe(composerPanel);
   }
-  document.querySelector("#composer-expand-button")?.addEventListener("click", deps.toggleComposerExpanded);
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && deps.isComposerExpanded()) {
+  document
+    .querySelector('#composer-expand-button')
+    ?.addEventListener('click', deps.toggleComposerExpanded);
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && deps.isComposerExpanded()) {
       deps.collapseComposer();
     }
   });
 }
 
 function bindCollapseEvents() {
-  advancedPromptToggleButton?.addEventListener("click", () => {
+  advancedPromptToggleButton?.addEventListener('click', () => {
     state.advancedPromptCollapsed = !state.advancedPromptCollapsed;
     syncAdvancedPromptCollapsedState();
   });
 
-  for (const button of document.querySelectorAll("[data-toggle-section]")) {
-    button.addEventListener("click", () => {
-      const sectionKey = button.getAttribute("data-toggle-section");
+  for (const button of document.querySelectorAll('[data-toggle-section]')) {
+    button.addEventListener('click', () => {
+      const sectionKey = button.getAttribute('data-toggle-section');
       if (!sectionKey) return;
       state.collapsedSections = {
         ...state.collapsedSections,
@@ -418,26 +425,27 @@ function bindCollapseEvents() {
 }
 
 function bindFormEvents() {
-  concurrencySelect?.addEventListener("change", async () => {
+  concurrencySelect?.addEventListener('change', async () => {
     try {
-      const response = await fetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ concurrency: concurrencySelect.value }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Falha ao atualizar concorrência.");
+      if (!response.ok) throw new Error(data.error || 'Falha ao atualizar concorrência.');
       statusBox.textContent = `Concorrência atualizada para ${data.concurrency} worker(s).`;
       await refreshJobs();
     } catch (error) {
-      statusBox.textContent = error instanceof Error ?error.message : "Falha ao atualizar concorrência.";
+      statusBox.textContent =
+        error instanceof Error ? error.message : 'Falha ao atualizar concorrência.';
     }
   });
 
-  form?.addEventListener("submit", async (event) => {
+  form?.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!promptInput?.value.trim()) {
-      statusBox.textContent = "Informe um prompt para gerar a imagem.";
+      statusBox.textContent = 'Informe um prompt para gerar a imagem.';
       promptInput?.focus();
       return;
     }
@@ -448,20 +456,26 @@ function bindFormEvents() {
     const templateResolution = deps.resolvePromptImageTemplates(promptResolution.cleanPrompt);
     const promptBase = templateResolution.cleanPrompt || promptInput.value.trim();
     const promptOptions = deps.collectPromptOptions();
-    const regionReferenceImages = state.selectedRegionReference?.payload ?[state.selectedRegionReference.payload] : [];
+    const regionReferenceImages = state.selectedRegionReference?.payload
+      ? [state.selectedRegionReference.payload]
+      : [];
     const referenceImages = await buildReferencePayload(state.selectedReferenceFiles);
 
-    setLoading(true, "Adicionando job na fila...");
+    setLoading(true, 'Adicionando job na fila...');
     try {
-      const response = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           promptBase,
-          prompt: deps.buildLocalizedPrompt(promptBase, promptOptions, state.selectedRegionReference),
+          prompt: deps.buildLocalizedPrompt(
+            promptBase,
+            promptOptions,
+            state.selectedRegionReference
+          ),
           promptOptions,
           quantity: quantitySelect?.value || 1,
-          model: modelSelect?.value || "gemini-2.5-flash-image",
+          model: modelSelect?.value || 'gemini-2.5-flash-image',
           folder: activeTargetFolder,
           referenceImages: [...regionReferenceImages, ...referenceImages],
           branchReference: state.selectedBranchReference,
@@ -470,10 +484,10 @@ function bindFormEvents() {
         }),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Falha ao criar job.");
+      if (!response.ok) throw new Error(data.error || 'Falha ao criar job.');
 
-      promptInput.value = "";
-      if (negativePromptInput) negativePromptInput.value = "";
+      promptInput.value = '';
+      if (negativePromptInput) negativePromptInput.value = '';
       state.selectedReferenceFiles = [];
       state.selectedBranchReference = null;
       state.selectedRegionReference = null;
@@ -485,7 +499,7 @@ function bindFormEvents() {
       await refreshJobs();
       await refreshUsage();
     } catch (error) {
-      const message = error instanceof Error ?error.message : "Falha ao adicionar job.";
+      const message = error instanceof Error ? error.message : 'Falha ao adicionar job.';
       statusBox.textContent = message;
       showToast(message);
     } finally {
@@ -495,7 +509,9 @@ function bindFormEvents() {
 }
 
 function toggleAllMediaSelection() {
-  const galleryIds = state.lastJobs.filter((job) => job.status === "completed" && job.result).map((job) => job.id);
+  const galleryIds = state.lastJobs
+    .filter((job) => job.status === 'completed' && job.result)
+    .map((job) => job.id);
   const cutoutIds = state.lastCutouts.map((item) => item.id);
   const cropIds = state.lastCrops.map((item) => item.id);
   const totalIds = galleryIds.length + cutoutIds.length + cropIds.length;
@@ -510,11 +526,11 @@ function toggleAllMediaSelection() {
   deps.renderCrops(state.lastCrops);
 }
 
-function setLoading(isLoading, label = "Adicionando job na fila...") {
+function setLoading(isLoading, label = 'Adicionando job na fila...') {
   if (!submitButton) return;
   submitButton.disabled = isLoading;
-  submitButton.textContent = isLoading ?"Enfileirando..." : "Adicionar na fila";
-  statusBox.textContent = isLoading ?label : statusBox.textContent;
+  submitButton.textContent = isLoading ? 'Enfileirando...' : 'Adicionar na fila';
+  statusBox.textContent = isLoading ? label : statusBox.textContent;
 }
 
 function getActiveCreationFolder() {
@@ -523,10 +539,10 @@ function getActiveCreationFolder() {
 
 function loadCustomFolders() {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(CUSTOM_FOLDERS_STORAGE_KEY) || "[]");
-    return Array.from(new Set(parsed.map((entry) => normalizeFolderValue(entry)).filter(Boolean))).sort((left, right) =>
-      left.localeCompare(right, "pt-BR")
-    );
+    const parsed = JSON.parse(window.localStorage.getItem(CUSTOM_FOLDERS_STORAGE_KEY) || '[]');
+    return Array.from(
+      new Set(parsed.map((entry) => normalizeFolderValue(entry)).filter(Boolean))
+    ).sort((left, right) => left.localeCompare(right, 'pt-BR'));
   } catch {
     return [];
   }
@@ -535,42 +551,50 @@ function loadCustomFolders() {
 function registerFolderName(folder) {
   const normalizedFolder = normalizeFolderValue(folder);
   if (!normalizedFolder || state.customFolders.includes(normalizedFolder)) return;
-  state.customFolders = [...state.customFolders, normalizedFolder].sort((left, right) => left.localeCompare(right, "pt-BR"));
+  state.customFolders = [...state.customFolders, normalizedFolder].sort((left, right) =>
+    left.localeCompare(right, 'pt-BR')
+  );
   window.localStorage.setItem(CUSTOM_FOLDERS_STORAGE_KEY, JSON.stringify(state.customFolders));
 }
 
 function loadCollapsedSections() {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(COLLAPSED_SECTIONS_STORAGE_KEY) || "{}");
-    return parsed && typeof parsed === "object" ?parsed : {};
+    const parsed = JSON.parse(window.localStorage.getItem(COLLAPSED_SECTIONS_STORAGE_KEY) || '{}');
+    return parsed && typeof parsed === 'object' ? parsed : {};
   } catch {
     return {};
   }
 }
 
 function persistCollapsedSections() {
-  window.localStorage.setItem(COLLAPSED_SECTIONS_STORAGE_KEY, JSON.stringify(state.collapsedSections));
+  window.localStorage.setItem(
+    COLLAPSED_SECTIONS_STORAGE_KEY,
+    JSON.stringify(state.collapsedSections)
+  );
 }
 
 function syncAdvancedPromptCollapsedState() {
   if (!advancedPromptPanel || !advancedPromptToggleButton) return;
-  advancedPromptPanel.classList.toggle("is-collapsed", state.advancedPromptCollapsed);
-  advancedPromptToggleButton.setAttribute("aria-expanded", state.advancedPromptCollapsed ?"false" : "true");
+  advancedPromptPanel.classList.toggle('is-collapsed', state.advancedPromptCollapsed);
   advancedPromptToggleButton.setAttribute(
-    "aria-label",
-    state.advancedPromptCollapsed ?"Expandir controles avançados" : "Minimizar controles avançados"
+    'aria-expanded',
+    state.advancedPromptCollapsed ? 'false' : 'true'
+  );
+  advancedPromptToggleButton.setAttribute(
+    'aria-label',
+    state.advancedPromptCollapsed ? 'Expandir controles avançados' : 'Minimizar controles avançados'
   );
 }
 
 function syncSectionCollapsedState() {
-  for (const section of document.querySelectorAll("[data-collapsible-section]")) {
-    const sectionKey = section.getAttribute("data-collapsible-section");
+  for (const section of document.querySelectorAll('[data-collapsible-section]')) {
+    const sectionKey = section.getAttribute('data-collapsible-section');
     const isCollapsed = Boolean(state.collapsedSections[sectionKey]);
-    section.classList.toggle("is-collapsed", isCollapsed);
-    const button = section.querySelector("[data-toggle-section]");
+    section.classList.toggle('is-collapsed', isCollapsed);
+    const button = section.querySelector('[data-toggle-section]');
     if (!button) continue;
-    button.setAttribute("aria-expanded", isCollapsed ?"false" : "true");
-    button.classList.toggle("is-collapsed", isCollapsed);
+    button.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    button.classList.toggle('is-collapsed', isCollapsed);
   }
 }
 
@@ -600,11 +624,11 @@ function renderReferencePreview() {
     return;
   }
 
-  referencePreview.innerHTML = "";
+  referencePreview.innerHTML = '';
   state.selectedReferenceFiles.forEach((file, index) => {
     const imageUrl = URL.createObjectURL(file);
-    const card = document.createElement("article");
-    card.className = "reference-card";
+    const card = document.createElement('article');
+    card.className = 'reference-card';
     card.innerHTML = `
       <img src="${imageUrl}" alt="${escapeHtml(file.name)}">
       <div class="reference-body">
@@ -630,12 +654,12 @@ function renderBranchPreview() {
   }
   branchPreview.innerHTML = `
     <article class="reference-card">
-      <img src="${state.selectedBranchReference.imageUrl}" alt="${escapeHtml(state.selectedBranchReference.name || "Imagem base")}">
-      <div class="reference-body"><p class="reference-name">${escapeHtml(state.selectedBranchReference.name || "Imagem base")}</p></div>
+      <img src="${state.selectedBranchReference.imageUrl}" alt="${escapeHtml(state.selectedBranchReference.name || 'Imagem base')}">
+      <div class="reference-body"><p class="reference-name">${escapeHtml(state.selectedBranchReference.name || 'Imagem base')}</p></div>
       <button class="ghost-button" type="button" data-clear-branch-reference>Limpar</button>
     </article>
   `;
-  branchPreview.querySelector("[data-clear-branch-reference]")?.addEventListener("click", () => {
+  branchPreview.querySelector('[data-clear-branch-reference]')?.addEventListener('click', () => {
     state.selectedBranchReference = null;
     state.selectedRegionReference = null;
     renderBranchPreview();
@@ -656,7 +680,7 @@ function renderRegionPreview() {
       <button class="ghost-button" type="button" data-clear-region-reference>Limpar</button>
     </article>
   `;
-  regionPreview.querySelector("[data-clear-region-reference]")?.addEventListener("click", () => {
+  regionPreview.querySelector('[data-clear-region-reference]')?.addEventListener('click', () => {
     state.selectedRegionReference = null;
     renderRegionPreview();
   });
@@ -665,7 +689,7 @@ function renderRegionPreview() {
 function selectBranchFromJob(jobId, keepPrompt) {
   const job = state.lastJobs.find((entry) => entry.id === jobId);
   if (!job?.result?.imageUrl) {
-    statusBox.textContent = "Não foi possível selecionar essa imagem como base.";
+    statusBox.textContent = 'Não foi possível selecionar essa imagem como base.';
     return;
   }
 
@@ -682,7 +706,8 @@ function selectBranchFromJob(jobId, keepPrompt) {
   }
   renderBranchPreview();
   renderRegionPreview();
-  statusBox.textContent = keepPrompt ?"Imagem base e prompt carregados." : "Imagem base selecionada.";
+  statusBox.textContent = keepPrompt
+    ? 'Imagem base e prompt carregados.'
+    : 'Imagem base selecionada.';
   promptInput?.focus();
 }
-

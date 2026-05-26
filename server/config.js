@@ -1,27 +1,26 @@
 // @ts-check
-import path from "path";
-import { fileURLToPath } from "url";
-import fs from "fs";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const projectRoot = path.join(__dirname, "..");
-export const publicDir = path.join(projectRoot, "dist");
-export const generatedDir = path.join(projectRoot, "generated");
-export const dataDir = path.join(projectRoot, "data");
+export const projectRoot = path.join(__dirname, '..');
+export const publicDir = path.join(projectRoot, 'dist');
+export const generatedDir = path.join(projectRoot, 'generated');
+export const dataDir = path.join(projectRoot, 'data');
 
-export const legacyUploadsDir = path.join(dataDir, "uploads");
-export const referencesDir = path.join(dataDir, "references");
-export const cutoutsDir = path.join(dataDir, "cutouts");
-export const cropsDir = path.join(dataDir, "crops");
-export const thumbsDir = path.join(dataDir, "thumbs");
+export const legacyUploadsDir = path.join(dataDir, 'uploads');
+export const referencesDir = path.join(dataDir, 'references');
+export const cutoutsDir = path.join(dataDir, 'cutouts');
+export const cropsDir = path.join(dataDir, 'crops');
+export const thumbsDir = path.join(dataDir, 'thumbs');
 
-export const queueStatePath = path.join(dataDir, "queue-state.json");
-export const cutoutStatePath = path.join(dataDir, "cutout-state.json");
-export const cropStatePath = path.join(dataDir, "crop-state.json");
-export const productModelStatePath = path.join(dataDir, "product-models-state.json");
-export const imageTemplateStatePath = path.join(dataDir, "image-templates-state.json");
+export const queueStatePath = path.join(dataDir, 'queue-state.json');
+export const cutoutStatePath = path.join(dataDir, 'cutout-state.json');
+export const cropStatePath = path.join(dataDir, 'crop-state.json');
+export const productModelStatePath = path.join(dataDir, 'product-models-state.json');
+export const imageTemplateStatePath = path.join(dataDir, 'image-templates-state.json');
 
 /** @type {number} */
 export const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -31,17 +30,17 @@ export const apiKey = process.env.GEMINI_API_KEY;
 
 /** @type {Record<string, number>} Cost in USD per generated image */
 export const pricingTable = {
-  "gemini-2.5-flash": 0.0000001,
-  "gemini-2.5-pro": 0.000002,
-  "gemini-2.0-flash-exp": 0.0,
-  "gemini-2.0-pro-exp-02-05": 0.0,
-  "gemini-2.0-flash-thinking-exp-01-21": 0.0,
-  "imagen-3.0-generate-002": 0.03,
-  "imagen-3.0-fast-generate-001": 0.03,
+  'gemini-2.5-flash': 0.0000001,
+  'gemini-2.5-pro': 0.000002,
+  'gemini-2.0-flash-exp': 0.0,
+  'gemini-2.0-pro-exp-02-05': 0.0,
+  'gemini-2.0-flash-thinking-exp-01-21': 0.0,
+  'imagen-3.0-generate-002': 0.03,
+  'imagen-3.0-fast-generate-001': 0.03,
 };
 
 /** @type {Set<string>} */
-export const allowedReferenceMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+export const allowedReferenceMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 /** @type {number} Maximum number of reference images per job */
 export const maxReferenceImages = 4;
@@ -54,13 +53,13 @@ export const maxJsonBodyBytes = 60 * 1024 * 1024;
 
 /** @type {Record<string, string>} */
 export const mimeTypes = {
-  ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
-  ".json": "application/json; charset=utf-8",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".svg": "image/svg+xml",
-  ".webp": "image/webp",
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
 };

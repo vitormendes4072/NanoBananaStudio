@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
 import {
   generatedDir,
   referencesDir,
@@ -9,8 +9,8 @@ import {
   publicDir,
   mimeTypes,
   maxJsonBodyBytes,
-} from "../config.js";
-import { state } from "../state.js";
+} from '../config.js';
+import { state } from '../state.js';
 import {
   normalizeManagedRelativePath,
   normalizeLibraryFolder,
@@ -19,10 +19,10 @@ import {
   notFoundError,
   normalizeProductModelAlias,
   normalizeImageTemplateAlias,
-} from "./validation.js";
+} from './validation.js';
 
 export function buildImageName({ model, extension }) {
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   return `${stamp}-${model}.${extension}`;
 }
 
@@ -35,13 +35,13 @@ export function buildBatchId() {
 }
 
 export function mimeTypeToExtension(mimeType) {
-  if (mimeType === "image/jpeg") return "jpg";
-  if (mimeType === "image/webp") return "webp";
-  return "png";
+  if (mimeType === 'image/jpeg') return 'jpg';
+  if (mimeType === 'image/webp') return 'webp';
+  return 'png';
 }
 
 export function removeFileIfPresent(filePath) {
-  if (!filePath || typeof filePath !== "string") {
+  if (!filePath || typeof filePath !== 'string') {
     return;
   }
 
@@ -56,10 +56,10 @@ export function removeFileIfPresent(filePath) {
 
 export function buildManagedAssetRelativePath({ prefix, extension, date = new Date() }) {
   const year = String(date.getFullYear());
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const safePrefix = sanitizeFileName(prefix || "file").replace(/\.[^.]+$/, "") || "file";
-  const safeExtension = String(extension || "bin").replace(/^\./, "") || "bin";
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const safePrefix = sanitizeFileName(prefix || 'file').replace(/\.[^.]+$/, '') || 'file';
+  const safeExtension = String(extension || 'bin').replace(/^\./, '') || 'bin';
   return `${year}/${month}/${day}/${safePrefix}.${safeExtension}`;
 }
 
@@ -81,7 +81,7 @@ export function resolveManagedAssetPath(baseDir, relativePath) {
 export function resolveManagedAssetWritePath(baseDir, relativePath) {
   const absolutePath = resolveManagedAssetPath(baseDir, relativePath);
   if (!absolutePath) {
-    throw badRequestError("Não foi possível preparar o caminho do arquivo.");
+    throw badRequestError('Não foi possível preparar o caminho do arquivo.');
   }
 
   fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
@@ -94,8 +94,8 @@ export function buildAssetUrl(assetType, relativePath) {
 }
 
 export function extractRelativeAssetPath(requestPath) {
-  const decodedPath = decodeURIComponent(String(requestPath || ""));
-  return normalizeManagedRelativePath(decodedPath.replace(/^\/[^/]+\//, ""));
+  const decodedPath = decodeURIComponent(String(requestPath || ''));
+  return normalizeManagedRelativePath(decodedPath.replace(/^\/[^/]+\//, ''));
 }
 
 export function resolveReferenceAbsolutePath(relativePath) {
@@ -129,7 +129,7 @@ export function resolveAssetPathFromRequest(baseDir, requestPath, assetType) {
     }
   }
 
-  if (assetType === "references") {
+  if (assetType === 'references') {
     return resolveReferenceAbsolutePath(relativePath);
   }
 
@@ -141,22 +141,22 @@ export function resolveImageSourcePath(imageUrl) {
     return null;
   }
 
-  const pathname = new URL(imageUrl, "http://localhost").pathname;
-  if (pathname.startsWith("/generated/")) {
-    return resolveAssetPathFromRequest(generatedDir, pathname, "generated");
+  const pathname = new URL(imageUrl, 'http://localhost').pathname;
+  if (pathname.startsWith('/generated/')) {
+    return resolveAssetPathFromRequest(generatedDir, pathname, 'generated');
   }
 
-  if (pathname.startsWith("/references/") || pathname.startsWith("/uploads/")) {
+  if (pathname.startsWith('/references/') || pathname.startsWith('/uploads/')) {
     const relativePath = extractRelativeAssetPath(pathname);
     return resolveReferenceAbsolutePath(relativePath);
   }
 
-  if (pathname.startsWith("/state.cutouts/")) {
-    return resolveAssetPathFromRequest(cutoutsDir, pathname, "cutouts");
+  if (pathname.startsWith('/state.cutouts/')) {
+    return resolveAssetPathFromRequest(cutoutsDir, pathname, 'cutouts');
   }
 
-  if (pathname.startsWith("/state.crops/")) {
-    return resolveAssetPathFromRequest(cropsDir, pathname, "crops");
+  if (pathname.startsWith('/state.crops/')) {
+    return resolveAssetPathFromRequest(cropsDir, pathname, 'crops');
   }
 
   return null;
@@ -167,7 +167,7 @@ export function storeReferenceImages(referenceImages, options = {}) {
     return [];
   }
 
-  const folderPrefix = normalizeManagedRelativePath(options.folderPrefix || "");
+  const folderPrefix = normalizeManagedRelativePath(options.folderPrefix || '');
 
   return referenceImages.map((image, index) => {
     const extension = mimeTypeToExtension(image.mimeType);
@@ -175,7 +175,9 @@ export function storeReferenceImages(referenceImages, options = {}) {
       extension,
       prefix: `${Date.now()}-${index + 1}-${Math.random().toString(36).slice(2, 8)}`,
     });
-    const filename = folderPrefix ? normalizeManagedRelativePath(`${folderPrefix}/${datedFilename}`) : datedFilename;
+    const filename = folderPrefix
+      ? normalizeManagedRelativePath(`${folderPrefix}/${datedFilename}`)
+      : datedFilename;
     const absolutePath = resolveManagedAssetWritePath(referencesDir, filename);
     fs.writeFileSync(absolutePath, image.buffer);
 
@@ -197,14 +199,14 @@ export function cleanupReferenceFilesForJobs(removedJobs = []) {
   const stillReferencedPaths = new Set(
     state.jobs
       .flatMap((job) => (Array.isArray(job.referenceImages) ? job.referenceImages : []))
-      .map((image) => normalizeManagedRelativePath(image?.relativePath || ""))
+      .map((image) => normalizeManagedRelativePath(image?.relativePath || ''))
       .filter(Boolean)
   );
 
   const removablePaths = new Set(
     removedJobs
       .flatMap((job) => (Array.isArray(job.referenceImages) ? job.referenceImages : []))
-      .map((image) => normalizeManagedRelativePath(image?.relativePath || ""))
+      .map((image) => normalizeManagedRelativePath(image?.relativePath || ''))
       .filter(Boolean)
   );
 
@@ -220,48 +222,50 @@ export function cleanupReferenceFilesForJobs(removedJobs = []) {
 
 export function cleanupReferenceImageFiles(referenceImages = []) {
   for (const image of referenceImages) {
-    const absolutePath = resolveReferenceAbsolutePath(image?.relativePath || "");
+    const absolutePath = resolveReferenceAbsolutePath(image?.relativePath || '');
     removeFileIfPresent(absolutePath);
   }
 }
 
 export function buildReferenceParts(referenceImages = []) {
   return referenceImages.map((image) => {
-    const absolutePath = resolveReferenceAbsolutePath(image.relativePath || "");
+    const absolutePath = resolveReferenceAbsolutePath(image.relativePath || '');
     if (!image.relativePath || !absolutePath) {
-      throw new Error(`A imagem de referência ${image.name || "selecionada"} não foi encontrada no servidor.`);
+      throw new Error(
+        `A imagem de referência ${image.name || 'selecionada'} não foi encontrada no servidor.`
+      );
     }
 
     return {
       inlineData: {
-        mimeType: image.mimeType || "image/png",
-        data: fs.readFileSync(absolutePath, "base64"),
+        mimeType: image.mimeType || 'image/png',
+        data: fs.readFileSync(absolutePath, 'base64'),
       },
     };
   });
 }
 
 export function inferAssetTypeFromBaseDir(baseDir) {
-  if (baseDir === cutoutsDir) return "cutouts";
-  if (baseDir === cropsDir) return "crops";
-  if (baseDir === referencesDir || baseDir === legacyUploadsDir) return "references";
-  return "generated";
+  if (baseDir === cutoutsDir) return 'cutouts';
+  if (baseDir === cropsDir) return 'crops';
+  if (baseDir === referencesDir || baseDir === legacyUploadsDir) return 'references';
+  return 'generated';
 }
 
 export function extractCustomFolderFromRelativePath(relativePath) {
   const normalized = normalizeManagedRelativePath(relativePath);
   const match = normalized.match(/^(.+)\/\d{4}\/\d{2}\/\d{2}\/[^/]+$/);
-  return match ? normalizeLibraryFolder(match[1]) : "";
+  return match ? normalizeLibraryFolder(match[1]) : '';
 }
 
 export function normalizeMediaRecordState(item, baseDir) {
-  if (!item || typeof item !== "object") {
+  if (!item || typeof item !== 'object') {
     return item;
   }
 
   const assetType = inferAssetTypeFromBaseDir(baseDir);
   const relativePath = normalizeManagedRelativePath(
-    item.relativePath || item.filename || extractRelativeAssetPath(item.imageUrl || "")
+    item.relativePath || item.filename || extractRelativeAssetPath(item.imageUrl || '')
   );
 
   if (!relativePath) {
@@ -273,7 +277,9 @@ export function normalizeMediaRecordState(item, baseDir) {
   const resolvedPath = resolveManagedAssetPath(baseDir, relativePath);
   item.localPath = resolvedPath && fs.existsSync(resolvedPath) ? resolvedPath : item.localPath;
   item.imageUrl = buildAssetUrl(assetType, relativePath);
-  item.folder = normalizeLibraryFolder(item.folder || extractCustomFolderFromRelativePath(relativePath));
+  item.folder = normalizeLibraryFolder(
+    item.folder || extractCustomFolderFromRelativePath(relativePath)
+  );
   return item;
 }
 
@@ -290,7 +296,9 @@ export function hydrateLegacyReferenceFiles() {
     }
 
     for (const referenceImage of entity.referenceImages) {
-      const filename = referenceImage?.relativePath ? normalizeManagedRelativePath(referenceImage.relativePath) : null;
+      const filename = referenceImage?.relativePath
+        ? normalizeManagedRelativePath(referenceImage.relativePath)
+        : null;
       if (!filename) {
         continue;
       }
@@ -309,7 +317,7 @@ export function hydrateLegacyReferenceFiles() {
 
 export function hydrateManagedMediaState() {
   for (const job of state.jobs) {
-    if (job?.result && typeof job.result === "object") {
+    if (job?.result && typeof job.result === 'object') {
       normalizeMediaRecordState(job.result, generatedDir);
     }
   }
@@ -323,20 +331,20 @@ export function hydrateManagedMediaState() {
   }
 }
 
-export function moveMediaRecordToFolder({ item, baseDir, assetType, folder = "", dateValue }) {
+export function moveMediaRecordToFolder({ item, baseDir, assetType, folder = '', dateValue }) {
   normalizeMediaRecordState(item, baseDir);
 
   const currentRelativePath = normalizeManagedRelativePath(item.relativePath || item.filename);
   const currentAbsolutePath =
     item.localPath ||
     resolveManagedAssetPath(baseDir, currentRelativePath) ||
-    resolveAssetPathFromRequest(baseDir, item.imageUrl || "");
+    resolveAssetPathFromRequest(baseDir, item.imageUrl || '');
 
   if (!currentRelativePath || !currentAbsolutePath || !fs.existsSync(currentAbsolutePath)) {
-    throw notFoundError("Não foi possível localizar o arquivo para reorganizar.");
+    throw notFoundError('Não foi possível localizar o arquivo para reorganizar.');
   }
 
-  const extension = path.extname(currentRelativePath).replace(/^\./, "") || "png";
+  const extension = path.extname(currentRelativePath).replace(/^\./, '') || 'png';
   const prefix = path.basename(currentRelativePath, path.extname(currentRelativePath));
   const datedRelativePath = buildManagedAssetRelativePath({
     prefix,
@@ -409,9 +417,9 @@ export function resolveImageTemplatesByAlias(value) {
 }
 
 export function serveFile(res, filePath) {
-  if (!filePath || typeof filePath !== "string") {
+  if (!filePath || typeof filePath !== 'string') {
     res.writeHead(404);
-    res.end("Not found");
+    res.end('Not found');
     return;
   }
 
@@ -424,19 +432,19 @@ export function serveFile(res, filePath) {
     !filePath.startsWith(legacyUploadsDir)
   ) {
     res.writeHead(403);
-    res.end("Forbidden");
+    res.end('Forbidden');
     return;
   }
 
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
     res.writeHead(404);
-    res.end("Not found");
+    res.end('Not found');
     return;
   }
 
   const extension = path.extname(filePath).toLowerCase();
-  const contentType = mimeTypes[extension] || "application/octet-stream";
-  res.writeHead(200, { "Content-Type": contentType });
+  const contentType = mimeTypes[extension] || 'application/octet-stream';
+  res.writeHead(200, { 'Content-Type': contentType });
   fs.createReadStream(filePath).pipe(res);
 }
 
@@ -445,7 +453,7 @@ export function serveAssetFromDir(res, baseDir, requestPath) {
 }
 
 export function sendJson(res, statusCode, body) {
-  res.writeHead(statusCode, { "Content-Type": mimeTypes[".json"] });
+  res.writeHead(statusCode, { 'Content-Type': mimeTypes['.json'] });
   res.end(JSON.stringify(body, null, 2));
 }
 
@@ -455,12 +463,12 @@ export async function readJsonBody(req) {
   for await (const chunk of req) {
     totalBytes += chunk.length;
     if (totalBytes > maxJsonBodyBytes) {
-      throw badRequestError("O corpo da requisição passou do limite permitido.");
+      throw badRequestError('O corpo da requisição passou do limite permitido.');
     }
     chunks.push(chunk);
   }
 
-  const raw = Buffer.concat(chunks).toString("utf8");
+  const raw = Buffer.concat(chunks).toString('utf8');
   if (!raw) {
     return {};
   }
@@ -468,7 +476,7 @@ export async function readJsonBody(req) {
   try {
     return JSON.parse(raw);
   } catch {
-    throw badRequestError("O corpo da requisição não está em JSON válido.");
+    throw badRequestError('O corpo da requisição não está em JSON válido.');
   }
 }
 
@@ -477,14 +485,14 @@ export function loadDotEnv(envPath) {
     return;
   }
 
-  const lines = fs.readFileSync(envPath, "utf8").split(/\r?\n/);
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) {
+    if (!trimmed || trimmed.startsWith('#')) {
       continue;
     }
 
-    const separatorIndex = trimmed.indexOf("=");
+    const separatorIndex = trimmed.indexOf('=');
     if (separatorIndex === -1) {
       continue;
     }

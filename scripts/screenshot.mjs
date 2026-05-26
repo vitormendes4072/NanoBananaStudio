@@ -21,8 +21,10 @@ async function capture() {
 
   // Capture console errors
   const errors = [];
-  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
-  page.on('pageerror', err => errors.push(err.message));
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') errors.push(msg.text());
+  });
+  page.on('pageerror', (err) => errors.push(err.message));
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
   // Wait for polling to run
@@ -33,7 +35,7 @@ async function capture() {
     try {
       const r = await fetch('/api/jobs');
       const data = await r.json();
-      const completed = (data.jobs || []).filter(j => j.status === 'completed' && j.result);
+      const completed = (data.jobs || []).filter((j) => j.status === 'completed' && j.result);
       const grid = document.getElementById('gallery-grid');
       const galleryFilter = document.getElementById('gallery-filter');
       return {
@@ -45,7 +47,9 @@ async function capture() {
         galleryFilterValue: galleryFilter?.value,
         firstImageUrl: completed[0]?.result?.imageUrl,
       };
-    } catch (e) { return { error: e.message }; }
+    } catch (e) {
+      return { error: e.message };
+    }
   });
   console.log('Debug:', JSON.stringify(debugInfo));
   if (errors.length) console.log('Page errors:', errors.slice(0, 5));
@@ -54,13 +58,14 @@ async function capture() {
   const forceResult = await page.evaluate(async () => {
     const r = await fetch('/api/jobs');
     const data = await r.json();
-    const completed = (data.jobs || []).filter(j => j.status === 'completed' && j.result);
+    const completed = (data.jobs || []).filter((j) => j.status === 'completed' && j.result);
     const grid = document.getElementById('gallery-grid');
     if (!grid) return 'grid not found';
     grid.innerHTML = '';
     for (const job of completed.slice(0, 12)) {
       const card = document.createElement('div');
-      card.style.cssText = 'display:inline-block;width:180px;height:180px;margin:4px;overflow:hidden;border-radius:8px;background:#f0f0f0;';
+      card.style.cssText =
+        'display:inline-block;width:180px;height:180px;margin:4px;overflow:hidden;border-radius:8px;background:#f0f0f0;';
       const img = document.createElement('img');
       img.src = `/api/thumb?src=${encodeURIComponent(job.result.imageUrl)}`;
       img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
@@ -106,12 +111,15 @@ async function capture() {
 
   // ── 5. Gallery with generated images ─────────────────────────────────────
   await page.evaluate(() => {
-    const gallerySection = Array.from(document.querySelectorAll('section'))
-      .find(s => s.querySelector('h2')?.textContent?.trim() === 'Galeria');
+    const gallerySection = Array.from(document.querySelectorAll('section')).find(
+      (s) => s.querySelector('h2')?.textContent?.trim() === 'Galeria'
+    );
     if (gallerySection) gallerySection.scrollIntoView({ behavior: 'instant', block: 'start' });
   });
   await page.waitForTimeout(500);
-  const gridCount = await page.evaluate(() => document.getElementById('gallery-grid')?.children?.length ?? 0);
+  const gridCount = await page.evaluate(
+    () => document.getElementById('gallery-grid')?.children?.length ?? 0
+  );
   console.log(`  gallery grid children: ${gridCount}`);
   await page.screenshot({
     path: path.join(outDir, '5-gallery.png'),
@@ -132,4 +140,7 @@ async function capture() {
   console.log(`\nAll screenshots saved to: docs/screenshots/`);
 }
 
-capture().catch(err => { console.error(err); process.exit(1); });
+capture().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

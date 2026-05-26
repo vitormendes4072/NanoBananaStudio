@@ -9,6 +9,6 @@ export default defineConfig({
       '/uploads': 'http://localhost:3000',
       '/cutouts': 'http://localhost:3000',
       '/crops': 'http://localhost:3000',
-    }
-  }
+    },
+  },
 });
