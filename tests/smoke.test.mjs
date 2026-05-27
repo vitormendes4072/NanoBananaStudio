@@ -587,6 +587,27 @@ async function main() {
       assert.match(response.body.error, /não foi possível ler|selecione uma região/i);
     });
 
+    await runTest(results, '/api/thumb rejeita path traversal com ".." literal', async () => {
+      const response = await fetch(
+        `${baseUrl}/api/thumb?src=${encodeURIComponent('/generated/../../server/config.js')}`
+      );
+      assert.equal(response.status, 400);
+    });
+
+    await runTest(results, '/api/thumb rejeita path traversal com separador Windows', async () => {
+      const response = await fetch(
+        `${baseUrl}/api/thumb?src=${encodeURIComponent('/generated/foo\\..\\..\\.\\server\\config.js')}`
+      );
+      assert.equal(response.status, 400);
+    });
+
+    await runTest(results, '/api/thumb retorna 404 para src valido sem arquivo', async () => {
+      const response = await fetch(
+        `${baseUrl}/api/thumb?src=${encodeURIComponent('/generated/nao-existe.png')}`
+      );
+      assert.equal(response.status, 404);
+    });
+
     await runTest(results, 'custo total persiste no ledger apos job ser deletado', async () => {
       // Create a completed job — saveJob() must write it into usage_ledger
       const mock = createMockCompletedJob(serverModule, { promptBase: 'smoke ledger custo' });
