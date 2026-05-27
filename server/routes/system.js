@@ -46,24 +46,47 @@ router.get('/api/health', (req, res) => {
   });
 });
 
+/**
+ * Verifica se filePath está contido dentro de baseDir após resolução pelo OS.
+ * Protege contra path traversal independente de separadores ou encoding.
+ */
+function isContainedIn(filePath, baseDir) {
+  const resolved = path.resolve(filePath);
+  const base = path.resolve(baseDir);
+  const rel = path.relative(base, resolved);
+  return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
+}
+
 router.get('/api/thumb', async (req, res) => {
   const src = req.query.src;
-  if (!src || typeof src !== 'string' || src.includes('..')) {
+  if (!src || typeof src !== 'string') {
     return res.status(400).json({ error: 'Invalid src parameter' });
   }
 
   let targetPath = null;
-  if (src.startsWith('/generated/'))
+  let baseDir = null;
+  if (src.startsWith('/generated/')) {
+    baseDir = generatedDir;
     targetPath = path.join(generatedDir, src.replace('/generated/', ''));
-  else if (src.startsWith('/cutouts/'))
+  } else if (src.startsWith('/cutouts/')) {
+    baseDir = cutoutsDir;
     targetPath = path.join(cutoutsDir, src.replace('/cutouts/', ''));
-  else if (src.startsWith('/crops/')) targetPath = path.join(cropsDir, src.replace('/crops/', ''));
-  else if (src.startsWith('/references/'))
+  } else if (src.startsWith('/crops/')) {
+    baseDir = cropsDir;
+    targetPath = path.join(cropsDir, src.replace('/crops/', ''));
+  } else if (src.startsWith('/references/')) {
+    baseDir = referencesDir;
     targetPath = path.join(referencesDir, src.replace('/references/', ''));
-  else if (src.startsWith('/uploads/'))
+  } else if (src.startsWith('/uploads/')) {
+    baseDir = legacyUploadsDir;
     targetPath = path.join(legacyUploadsDir, src.replace('/uploads/', ''));
+  }
 
-  if (!targetPath || !fs.existsSync(targetPath)) {
+  if (!targetPath || !isContainedIn(targetPath, baseDir)) {
+    return res.status(400).json({ error: 'Invalid src parameter' });
+  }
+
+  if (!fs.existsSync(targetPath)) {
     return res.status(404).send('Not found');
   }
 
