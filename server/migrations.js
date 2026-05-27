@@ -1,3 +1,5 @@
+import { pricingTable } from './config.js';
+
 function getVersion(db) {
   const row = db.prepare("SELECT value FROM app_settings WHERE key = 'schema_version'").get();
   return row ? Number(row.value) : 0;
@@ -106,7 +108,40 @@ function migration_v1(db) {
   })();
 }
 
+function migration_v2(db) {
+  db.transaction(() => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS usage_ledger (
+        job_id      TEXT PRIMARY KEY,
+        model       TEXT NOT NULL,
+        estimated_cost REAL NOT NULL DEFAULT 0,
+        completed_at   TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_usage_ledger_completed_at ON usage_ledger(completed_at);
+    `);
+
+    // Backfill from completed jobs still present in the jobs table
+    const completedJobs = db
+      .prepare("SELECT id, model, finished_at, created_at FROM jobs WHERE status = 'completed'")
+      .all();
+
+    const insert = db.prepare(`
+      INSERT OR IGNORE INTO usage_ledger (job_id, model, estimated_cost, completed_at)
+      VALUES (?, ?, ?, ?)
+    `);
+
+    for (const row of completedJobs) {
+      const unitCost = pricingTable[row.model] ?? 0;
+      const completedAt = row.finished_at || row.created_at || new Date().toISOString();
+      insert.run(row.id, row.model || 'unknown', unitCost, completedAt);
+    }
+
+    setVersion(db, 2);
+  })();
+}
+
 export function runMigrations(db) {
   const version = getVersion(db);
   if (version < 1) migration_v1(db);
+  if (version < 2) migration_v2(db);
 }

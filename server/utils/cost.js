@@ -1,5 +1,6 @@
 import { pricingTable, apiKey } from '../config.js';
 import { state, saveProductModel } from '../state.js';
+import db from '../db.js';
 import {
   normalizeProductModelAlias,
   notFoundError,
@@ -10,10 +11,16 @@ import { normalizeProductModelEvaluation, parseJsonObject } from './serializatio
 import { buildReferenceParts } from './files.js';
 
 export function buildUsageSummary() {
-  const completedJobs = state.jobs.filter((job) => job.status === 'completed' && job.result);
-  const failedJobs = state.jobs.filter((job) => job.status === 'failed');
-  const queuedJobs = state.jobs.filter((job) => job.status === 'queued');
-  const processingJobs = state.jobs.filter((job) => job.status === 'processing');
+  // Read all-time cost totals from the ledger — not affected by job trim
+  const ledgerRows = db
+    .prepare('SELECT model, estimated_cost, completed_at FROM usage_ledger')
+    .all();
+
+  // Read live job counts from the jobs table (trim only removes completed entries)
+  const jobs = state.jobs;
+  const failedJobs = jobs.filter((job) => job.status === 'failed');
+  const queuedJobs = jobs.filter((job) => job.status === 'queued');
+  const processingJobs = jobs.filter((job) => job.status === 'processing');
   const todayPrefix = new Date().toISOString().slice(0, 10);
 
   let totalEstimatedCost = 0;
@@ -21,36 +28,35 @@ export function buildUsageSummary() {
   let todayCompleted = 0;
   const byModel = {};
 
-  for (const job of completedJobs) {
-    const priceInfo = pricingTable[job.model];
-    const unitCost = priceInfo?.unitCost || 0;
-    const currency = priceInfo?.currency || 'USD';
+  for (const row of ledgerRows) {
+    const unitCost = row.estimated_cost;
+    const currency = 'USD';
 
     totalEstimatedCost += unitCost;
-    if (job.finishedAt?.startsWith(todayPrefix)) {
+    if (row.completed_at?.startsWith(todayPrefix)) {
       todayEstimatedCost += unitCost;
       todayCompleted += 1;
     }
 
-    if (!byModel[job.model]) {
-      byModel[job.model] = {
-        model: job.model,
-        label: priceInfo?.label || job.model,
+    if (!byModel[row.model]) {
+      byModel[row.model] = {
+        model: row.model,
+        label: row.model,
         currency,
-        unitCost,
+        unitCost: pricingTable[row.model] ?? 0,
         completed: 0,
         estimatedCost: 0,
       };
     }
 
-    byModel[job.model].completed += 1;
-    byModel[job.model].estimatedCost += unitCost;
+    byModel[row.model].completed += 1;
+    byModel[row.model].estimatedCost += unitCost;
   }
 
   return {
     ok: true,
     currency: 'USD',
-    completedJobs: completedJobs.length,
+    completedJobs: ledgerRows.length,
     failedJobs: failedJobs.length,
     queuedJobs: queuedJobs.length,
     processingJobs: processingJobs.length,
