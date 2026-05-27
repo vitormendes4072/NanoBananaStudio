@@ -1,4 +1,4 @@
-import { pricingTable, apiKey } from '../config.js';
+import { pricingTable, apiKey, productEvalModel } from '../config.js';
 import { state, saveProductModel } from '../state.js';
 import db from '../db.js';
 import {
@@ -269,7 +269,7 @@ export async function evaluateProductModelWithGemini(productModel) {
   };
 
   const apiResponse = await fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    `https://generativelanguage.googleapis.com/v1beta/models/${productEvalModel}:generateContent`,
     {
       method: 'POST',
       headers: {

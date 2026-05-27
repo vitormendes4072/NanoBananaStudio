@@ -14,6 +14,7 @@ import {
   referencesDir,
   legacyUploadsDir,
   thumbsDir,
+  defaultModel,
 } from '../config.js';
 import { normalizeConcurrency } from '../utils.js';
 
@@ -39,7 +40,7 @@ router.get('/api/health', (req, res) => {
   res.json({
     ok: true,
     hasApiKey: Boolean(process.env.GEMINI_API_KEY),
-    model: 'gemini-2.5-flash-image',
+    model: defaultModel,
     activeJobIds: Array.from(state.activeJobIds),
     queueSize: state.jobs.filter((job) => job.status === 'queued').length,
     concurrency: state.concurrency,
