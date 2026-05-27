@@ -7,6 +7,7 @@ import {
   cropStatePath,
   productModelStatePath,
   imageTemplateStatePath,
+  pricingTable,
 } from './config.js';
 
 /** @typedef {import('./types.js').Job} Job */
@@ -128,6 +129,26 @@ export function saveJob(job) {
     job.finishedAt ?? null,
     blob
   );
+
+  // Persist completed job cost in the ledger — survives job trim
+  if (job.status === 'completed') {
+    const unitCost = pricingTable[job.model] ?? 0;
+    db.prepare(
+      `
+      INSERT INTO usage_ledger (job_id, model, estimated_cost, completed_at)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(job_id) DO UPDATE SET
+        model          = excluded.model,
+        estimated_cost = excluded.estimated_cost,
+        completed_at   = excluded.completed_at
+    `
+    ).run(
+      job.id,
+      job.model ?? 'unknown',
+      unitCost,
+      job.finishedAt ?? new Date().toISOString()
+    );
+  }
 }
 
 /** @param {number} id */
