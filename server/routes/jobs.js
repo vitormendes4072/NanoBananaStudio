@@ -4,6 +4,7 @@ import { createJob, deleteJob, deleteGalleryJobsBulk, processQueue } from '../qu
 import { createBranchReference } from '../media.js';
 import { addClient, removeClient } from '../sse.js';
 import { generationLimiter } from '../rateLimits.js';
+import { allowedModels, defaultModel } from '../config.js';
 import {
   serializeJob,
   normalizeQuantity,
@@ -82,11 +83,7 @@ router.post('/api/jobs', generationLimiter, (req, res) => {
     ...referenceImages,
   ];
 
-  const model = pickAllowedValue(
-    body.model,
-    ['gemini-2.5-flash-image', 'gemini-3-pro-image-preview'],
-    'gemini-2.5-flash-image'
-  );
+  const model = pickAllowedValue(body.model, allowedModels, defaultModel);
   const batchId = quantity > 1 ? buildBatchId() : null;
 
   const createdJobs = [];
