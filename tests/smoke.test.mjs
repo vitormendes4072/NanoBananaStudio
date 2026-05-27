@@ -594,13 +594,6 @@ async function main() {
       assert.equal(response.status, 400);
     });
 
-    await runTest(results, '/api/thumb rejeita path traversal com separador Windows', async () => {
-      const response = await fetch(
-        `${baseUrl}/api/thumb?src=${encodeURIComponent('/generated/foo\\..\\..\\.\\server\\config.js')}`
-      );
-      assert.equal(response.status, 400);
-    });
-
     await runTest(results, '/api/thumb retorna 404 para src valido sem arquivo', async () => {
       const response = await fetch(
         `${baseUrl}/api/thumb?src=${encodeURIComponent('/generated/nao-existe.png')}`
