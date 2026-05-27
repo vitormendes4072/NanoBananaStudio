@@ -1,5 +1,6 @@
 import deps from './deps.js';
 import { state, selectedGalleryIds, selectedCutoutIds, selectedCropIds } from './state.js';
+import { showToast } from './utils.js';
 import {
   statusBox,
   selectGalleryBulkButton,
@@ -181,6 +182,50 @@ export function clearSelectionsFromPayload(payload) {
   if (Array.isArray(payload.crops)) for (const id of payload.crops) selectedCropIds.delete(id);
 }
 
+/**
+ * Envia os IDs selecionados para o backend e baixa um único arquivo ZIP.
+ * @param {{ jobs?: string[], cutouts?: string[], crops?: string[] }} payload
+ * @param {string} emptyMessage
+ */
+export async function exportSelectedItems(payload, emptyMessage) {
+  const total =
+    (payload.jobs?.length ?? 0) + (payload.cutouts?.length ?? 0) + (payload.crops?.length ?? 0);
+
+  if (!total) {
+    statusBox.textContent = emptyMessage;
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || 'Falha ao gerar o arquivo ZIP.');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'nano-banana-export.zip';
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+
+    statusBox.textContent = `${total} arquivo(s) exportado(s) como ZIP.`;
+  } catch (e) {
+    showToast(e instanceof Error ? e.message : 'Falha ao exportar arquivos.', 'error');
+  }
+}
+
+deps.exportSelectedItems = exportSelectedItems;
 deps.updateBulkSelectionUi = updateBulkSelectionUi;
 deps.pruneSelectionSet = pruneSelectionSet;
 deps.applySectionSelection = applySectionSelection;

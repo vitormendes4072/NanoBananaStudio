@@ -587,6 +587,34 @@ async function main() {
       assert.match(response.body.error, /não foi possível ler|selecione uma região/i);
     });
 
+    await runTest(results, 'POST /api/export com payload vazio retorna 400', async () => {
+      const response = await fetchJson('/api/export', {
+        method: 'POST',
+        body: JSON.stringify({ jobs: [], cutouts: [], crops: [] }),
+      });
+      assert.equal(response.status, 400);
+      assert.match(response.body.error, /nenhum arquivo|exportar/i);
+    });
+
+    await runTest(results, 'POST /api/export com job valido retorna ZIP', async () => {
+      const mock = createMockCompletedJob(serverModule, { promptBase: 'smoke export zip' });
+
+      const response = await fetch(`${baseUrl}/api/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobs: [mock.job.id], cutouts: [], crops: [] }),
+      });
+
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get('content-type'), 'application/zip');
+      assert.match(response.headers.get('content-disposition') || '', /attachment.*\.zip/i);
+
+      // ZIP magic bytes: PK\x03\x04
+      const buf = Buffer.from(await response.arrayBuffer());
+      assert.equal(buf[0], 0x50); // P
+      assert.equal(buf[1], 0x4b); // K
+    });
+
     await runTest(results, '/api/thumb rejeita path traversal com ".." literal', async () => {
       const response = await fetch(
         `${baseUrl}/api/thumb?src=${encodeURIComponent('/generated/../../server/config.js')}`
