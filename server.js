@@ -4,7 +4,7 @@ import { startServer as startAppServer } from './server/app.js';
 import { port } from './server/config.js';
 import { closeDb } from './server/db.js';
 import { generatedDir, referencesDir, cutoutsDir, cropsDir } from './server/config.js';
-import { createJob } from './server/queue.js';
+import { createJob, trimJobs } from './server/queue.js';
 import { persistQueueState, saveJob } from './server/state.js';
 import { serializeJob } from './server/utils.js';
 
@@ -45,6 +45,7 @@ export const __testUtils = {
   cutoutsDir,
   cropsDir,
   createJob,
+  trimJobs,
   saveJob,
   persistQueueState,
   serializeJob,
