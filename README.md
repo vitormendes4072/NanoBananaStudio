@@ -162,32 +162,66 @@ Open **http://localhost:3000**.
 
 ```
 ├── server/
-│   ├── app.js                # Express app setup and middleware
-│   ├── routes.js             # All API route handlers
-│   ├── queue.js              # Async job queue, lifecycle, and bulk operations
-│   ├── media.js              # Asset operations: cutouts, crops, models, templates
-│   ├── gemini.js             # Gemini API integration
-│   ├── backgroundRemoval.js  # On-device background removal pipeline
-│   ├── state.js              # In-memory state + SQLite DAOs
-│   ├── db.js                 # Database initialization and schema
-│   ├── config.js             # Environment config, pricing table, constants
-│   └── utils.js              # Serialization, validation, file helpers
+│   ├── app.js                  # Express app factory, middleware stack
+│   ├── server.js               # Entry point — binds app to port
+│   ├── queue.js                # Async job queue, workers, lifecycle, bulk ops
+│   ├── gemini.js               # Gemini API integration (generation)
+│   ├── media.js                # Asset ops: cutouts, crops, product models, templates
+│   ├── backgroundRemoval.js    # On-device ML background removal pipeline
+│   ├── sse.js                  # Server-Sent Events broadcaster
+│   ├── state.js                # SQLite DAOs — jobs, cutouts, crops, models, templates
+│   ├── db.js                   # Database init, WAL mode, schema creation
+│   ├── migrations.js           # Versioned schema migrations
+│   ├── config.js               # Env config, paths, pricing table, constants
+│   ├── rateLimits.js           # express-rate-limit configurations per route group
+│   ├── types.js                # JSDoc type definitions shared across the server
+│   ├── utils.js                # Barrel re-export of all utils/* modules
+│   ├── routes/
+│   │   ├── index.js            # Mounts all route groups onto the Express app
+│   │   ├── jobs.js             # /api/jobs — create, list, delete, cancel
+│   │   ├── media.js            # /api/cutouts, /api/crops, /api/product-models, /api/image-templates
+│   │   ├── library.js          # /api/library — bulk move, bulk delete
+│   │   ├── analytics.js        # /api/usage — cost summary grouped by model
+│   │   └── system.js           # /api/health, /api/thumb, /api/settings, SSE stream
+│   └── utils/
+│       ├── validation.js       # Input validators, normalizers, error builders
+│       ├── files.js            # File helpers: naming, paths, asset URLs, reference parts
+│       ├── serialization.js    # Job/cutout/crop serializers for API responses
+│       └── cost.js             # Cost calculation, usage summary, Gemini error classifier
 ├── src/
-│   ├── main.js               # Frontend state and event handlers
-│   ├── dom.js                # Centralized DOM element references
-│   ├── utils.js              # Client-side utilities (formatting, base64, toast)
-│   ├── prompt-presets-store.js # LocalStorage preset persistence
-│   └── styles.css            # Design system, tokens, animations
+│   ├── main.js                 # App bootstrap, SSE listener, top-level wiring
+│   ├── events.js               # All DOM event handlers
+│   ├── api.js                  # fetch + SSE wrappers for every backend endpoint
+│   ├── state.js                # UI state singleton — selected IDs, model info, constants
+│   ├── dom.js                  # Centralized DOM element references
+│   ├── deps.js                 # Shared runtime object injected across modules (see Q4)
+│   ├── composer.js             # Generation form — build job payload from UI state
+│   ├── prompt.js               # Prompt autocomplete and @alias / #alias resolution
+│   ├── prompt-presets-store.js # LocalStorage persistence for custom prompt presets
+│   ├── region-editor.js        # Canvas-based crop / region selection editor
+│   ├── selection.js            # Multi-select logic for gallery, cutouts, and crops
+│   ├── dialogs.js              # Modal dialogs (folder picker, confirm, etc.)
+│   ├── render-queue.js         # Renders job cards and gallery grid
+│   ├── render-media.js         # Renders cutouts and crops panels
+│   ├── render-library.js       # Renders product models and image templates
+│   ├── render-folders.js       # Renders folder board and folder filter chips
+│   ├── render-analytics.js     # Renders usage/cost analytics panel
+│   ├── render-usage.js         # Renders per-model usage summary row
+│   ├── utils.js                # Client-side utilities: formatting, base64, toast, slugify
+│   └── styles.css              # Design system, CSS tokens, animations
+├── scripts/
+│   └── screenshot.mjs          # Puppeteer script for capturing README screenshots
 ├── tests/
-│   └── smoke.test.mjs        # API smoke tests with isolated per-run database
-├── data/                     # Runtime artifacts — git-ignored
+│   └── smoke.test.mjs          # API smoke tests with isolated per-run SQLite database
+├── data/                       # Runtime artifacts — git-ignored
 │   ├── database.sqlite
 │   ├── references/
 │   ├── cutouts/
 │   └── crops/
-├── generated/                # Generated image output — git-ignored
-├── server.js                 # Entry point
+├── generated/                  # Generated image output — git-ignored
+├── server.js                   # Entry point
 ├── vite.config.js
+├── eslint.config.js
 └── .env.example
 ```
 
