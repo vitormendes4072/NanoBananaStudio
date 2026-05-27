@@ -587,6 +587,31 @@ async function main() {
       assert.match(response.body.error, /não foi possível ler|selecione uma região/i);
     });
 
+    await runTest(results, 'custo total persiste no ledger apos job ser deletado', async () => {
+      // Create a completed job — saveJob() must write it into usage_ledger
+      const mock = createMockCompletedJob(serverModule, { promptBase: 'smoke ledger custo' });
+
+      // usage summary should reflect this job in completedJobs
+      const beforeDelete = await fetchJson('/api/usage');
+      assert.equal(beforeDelete.status, 200);
+      const completedBefore = beforeDelete.body.completedJobs;
+      assert.ok(completedBefore >= 1, 'deve haver ao menos 1 job concluido no ledger');
+
+      // Delete the job from the jobs table
+      const deleteResponse = await fetchJson(`/api/jobs/${mock.job.id}`, { method: 'DELETE' });
+      assert.equal(deleteResponse.status, 200);
+      assert.equal(deleteResponse.body.ok, true);
+
+      // usage summary must still reflect the same count — ledger is independent of trim
+      const afterDelete = await fetchJson('/api/usage');
+      assert.equal(afterDelete.status, 200);
+      assert.equal(
+        afterDelete.body.completedJobs,
+        completedBefore,
+        'completedJobs no ledger nao deve diminuir apos deletar job'
+      );
+    });
+
     await runTest(
       results,
       'trimJobs remove apenas o excesso alem do limite configurado',
