@@ -142,12 +142,7 @@ export function saveJob(job) {
         estimated_cost = excluded.estimated_cost,
         completed_at   = excluded.completed_at
     `
-    ).run(
-      job.id,
-      job.model ?? 'unknown',
-      unitCost,
-      job.finishedAt ?? new Date().toISOString()
-    );
+    ).run(job.id, job.model ?? 'unknown', unitCost, job.finishedAt ?? new Date().toISOString());
   }
 }
 
