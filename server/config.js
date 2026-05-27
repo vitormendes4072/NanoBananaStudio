@@ -42,6 +42,15 @@ export const pricingTable = {
 /** @type {Set<string>} */
 export const allowedReferenceMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
+/** @type {number} Maximum jobs retained in the gallery (oldest deleted when exceeded) */
+export const maxJobs = process.env.MAX_JOBS ? parseInt(process.env.MAX_JOBS, 10) : 200;
+
+/** @type {number} Maximum cutouts retained (oldest deleted when exceeded) */
+export const maxCutouts = process.env.MAX_CUTOUTS ? parseInt(process.env.MAX_CUTOUTS, 10) : 100;
+
+/** @type {number} Maximum crops retained (oldest deleted when exceeded) */
+export const maxCrops = process.env.MAX_CROPS ? parseInt(process.env.MAX_CROPS, 10) : 100;
+
 /** @type {number} Maximum number of reference images per job */
 export const maxReferenceImages = 4;
 

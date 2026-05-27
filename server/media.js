@@ -36,7 +36,10 @@ import {
   generatedDir,
   mimeTypes,
   allowedReferenceMimeTypes,
+  maxCutouts,
+  maxCrops,
 } from './config.js';
+import { broadcast } from './sse.js';
 import { runBackgroundRemoval } from './backgroundRemoval.js';
 
 export function createBranchReference(branchReference) {
@@ -152,28 +155,32 @@ export function createCrop(source) {
 
 export function trimCutouts() {
   const cutouts = state.cutouts;
-  if (cutouts.length <= 50) {
+  if (cutouts.length <= maxCutouts) {
     return;
   }
 
-  const removed = cutouts.slice(50);
+  const removed = cutouts.slice(maxCutouts);
   for (const item of removed) {
     deleteCutoutFromDb(item.id);
     removeFileIfPresent(item.localPath);
   }
+
+  broadcast('cutouts:trim', { removed: removed.length, limit: maxCutouts });
 }
 
 export function trimCrops() {
   const crops = state.crops;
-  if (crops.length <= 50) {
+  if (crops.length <= maxCrops) {
     return;
   }
 
-  const removed = crops.slice(50);
+  const removed = crops.slice(maxCrops);
   for (const item of removed) {
     deleteCropFromDb(item.id);
     removeFileIfPresent(item.localPath);
   }
+
+  broadcast('crops:trim', { removed: removed.length, limit: maxCrops });
 }
 
 export function deleteCutout(cutoutId) {

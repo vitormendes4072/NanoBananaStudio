@@ -2643,6 +2643,10 @@ button:disabled {
   border-left: 4px solid var(--success-color, #10b981);
 }
 
+.toast-warning {
+  border-left: 4px solid var(--warning-color, #f59e0b);
+}
+
 @keyframes toastSlideUp {
   from {
     transform: translateY(100%) scale(0.95);
