@@ -14,6 +14,7 @@ import {
 } from './utils.js';
 import { generateImage } from './gemini.js';
 import { broadcast } from './sse.js';
+import { maxJobs } from './config.js';
 
 export function createJob({
   prompt,
@@ -110,16 +111,18 @@ export function deleteJob(jobId) {
 
 export function trimJobs() {
   const jobs = state.jobs;
-  if (jobs.length <= 50) {
+  if (jobs.length <= maxJobs) {
     return;
   }
 
-  const removed = jobs.slice(50);
+  const removed = jobs.slice(maxJobs);
   for (const job of removed) {
     deleteJobFromDb(job.id);
     removeFileIfPresent(job.result?.localPath);
   }
   cleanupReferenceFilesForJobs(removed);
+
+  broadcast('jobs:trim', { removed: removed.length, limit: maxJobs });
 }
 
 export function deleteGalleryJobsBulk(ids = []) {

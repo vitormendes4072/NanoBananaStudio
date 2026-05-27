@@ -137,6 +137,33 @@ export function connectSSE() {
     refreshUsage();
   });
 
+  source.addEventListener('jobs:trim', (e) => {
+    const { removed, limit } = JSON.parse(e.data);
+    showToast(
+      `${removed} imagem(ns) antiga(s) removida(s) automaticamente. Limite da galeria: ${limit}.`,
+      'warning'
+    );
+    refreshJobs();
+  });
+
+  source.addEventListener('cutouts:trim', (e) => {
+    const { removed, limit } = JSON.parse(e.data);
+    showToast(
+      `${removed} recorte(s) antigo(s) removido(s) automaticamente. Limite: ${limit}.`,
+      'warning'
+    );
+    refreshCutouts();
+  });
+
+  source.addEventListener('crops:trim', (e) => {
+    const { removed, limit } = JSON.parse(e.data);
+    showToast(
+      `${removed} crop(s) antigo(s) removido(s) automaticamente. Limite: ${limit}.`,
+      'warning'
+    );
+    refreshCrops();
+  });
+
   source.onerror = () => {
     // EventSource reconnects automatically via the retry interval set by the server
   };

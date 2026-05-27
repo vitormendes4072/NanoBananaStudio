@@ -586,6 +586,37 @@ async function main() {
       assert.equal(response.status, 400);
       assert.match(response.body.error, /não foi possível ler|selecione uma região/i);
     });
+
+    await runTest(
+      results,
+      'trimJobs remove apenas o excesso alem do limite configurado',
+      async () => {
+        const { trimJobs } = serverModule.__testUtils;
+
+        // Snapshot jobs before test
+        const before = await fetchJson('/api/jobs');
+        const countBefore = before.body.jobs.length;
+
+        // Create 5 mock jobs
+        for (let i = 0; i < 5; i += 1) {
+          const mock = createMockCompletedJob(serverModule, { promptBase: `trim-test-${i}` });
+          createdFiles.add(mock.job.result.localPath);
+        }
+
+        const afterCreate = await fetchJson('/api/jobs');
+        const countAfterCreate = afterCreate.body.jobs.length;
+        assert.equal(countAfterCreate, countBefore + 5, 'todos os 5 jobs devem estar listados');
+
+        // trimJobs with default limit (200) — should NOT remove anything
+        trimJobs();
+        const afterTrimDefault = await fetchJson('/api/jobs');
+        assert.equal(
+          afterTrimDefault.body.jobs.length,
+          countAfterCreate,
+          'com limite 200 nenhum job deve ser removido'
+        );
+      }
+    );
   } finally {
     await serverModule.stopServer();
     cleanupTestDatabase();
