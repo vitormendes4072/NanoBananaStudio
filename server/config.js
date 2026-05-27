@@ -39,6 +39,15 @@ export const pricingTable = {
   'imagen-3.0-fast-generate-001': 0.03,
 };
 
+/** @type {string[]} Models allowed for image generation */
+export const allowedModels = ['gemini-2.5-flash-image', 'gemini-3-pro-image-preview'];
+
+/** @type {string} Default image generation model */
+export const defaultModel = 'gemini-2.5-flash-image';
+
+/** @type {string} Model used for product quality evaluation (text/JSON) */
+export const productEvalModel = 'gemini-2.5-flash';
+
 /** @type {Set<string>} */
 export const allowedReferenceMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
