@@ -36,6 +36,7 @@ export async function generateImage(job) {
         'x-goog-api-key': apiKey,
       },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(120_000),
     }
   );
 

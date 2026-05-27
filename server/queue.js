@@ -74,9 +74,43 @@ export async function processQueue() {
   }
 }
 
+const MAX_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 1_000;
+
+/**
+ * Erros que não se beneficiam de retry (falha imediata e definitiva).
+ * @param {unknown} error
+ */
+function isRetryable(error) {
+  return error?.errorType !== 'auth' && error?.errorType !== 'quota';
+}
+
+/**
+ * Tenta gerar a imagem até MAX_RETRIES vezes com backoff exponencial.
+ * Erros de auth e quota falham na primeira tentativa.
+ * @param {import('./types.js').Job} job
+ */
+async function generateWithRetry(job) {
+  let lastError;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await generateImage(job);
+    } catch (error) {
+      lastError = error;
+      if (!isRetryable(error) || attempt === MAX_RETRIES) throw error;
+      const delay = RETRY_BASE_DELAY_MS * 2 ** (attempt - 1);
+      console.warn(
+        `[queue] job ${job.id} tentativa ${attempt}/${MAX_RETRIES} falhou — retry em ${delay}ms`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  throw lastError;
+}
+
 export async function runJob(job) {
   try {
-    const result = await generateImage(job);
+    const result = await generateWithRetry(job);
     job.status = 'completed';
     job.finishedAt = new Date().toISOString();
     job.result = result;
