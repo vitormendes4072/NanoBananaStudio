@@ -105,6 +105,7 @@ import { bindInteractiveActions, handleBulkRemoval, handleFolderAssignment } fro
 import './region-editor.js';
 import {
   refreshHealth,
+  refreshPricing,
   refreshJobs,
   refreshUsage,
   refreshCutouts,
@@ -113,6 +114,7 @@ import {
   refreshImageTemplates,
   connectSSE,
 } from './api.js';
+import { costEstimate } from './dom.js';
 
 bootstrap();
 
@@ -153,7 +155,8 @@ function renderInitialState() {
 }
 
 async function refreshInitialData() {
-  await refreshHealth();
+  await Promise.all([refreshHealth(), refreshPricing()]);
+  updateCostEstimate();
   await Promise.all([
     refreshJobs(),
     refreshUsage(),
@@ -435,7 +438,43 @@ function bindCollapseEvents() {
   }
 }
 
+function formatCost(value, currency = 'USD') {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  }).format(value);
+}
+
+function formatUpdatedAt(iso) {
+  if (!iso) return null;
+  const [y, m, d] = iso.split('-');
+  if (!y || !m || !d) return null;
+  return `${d}/${m}/${y}`;
+}
+
+export function updateCostEstimate() {
+  if (!costEstimate) return;
+  const model = modelSelect?.value;
+  const qty = Math.max(1, parseInt(quantitySelect?.value, 10) || 1);
+  const unit = state.pricing.models?.[model];
+  if (unit == null) {
+    costEstimate.textContent = 'Custo estimado: indisponível';
+    return;
+  }
+  const total = unit * qty;
+  const label =
+    qty === 1 ? '1 imagem' : `${qty} imagens × ${formatCost(unit, state.pricing.currency)}`;
+  const updatedAt = formatUpdatedAt(state.pricing.updatedAt);
+  const base = `Custo estimado: ${formatCost(total, state.pricing.currency)} (${label})`;
+  costEstimate.textContent = updatedAt ? `${base} · tabela atualizada em ${updatedAt}` : base;
+}
+
 function bindFormEvents() {
+  modelSelect?.addEventListener('change', updateCostEstimate);
+  quantitySelect?.addEventListener('change', updateCostEstimate);
+
   concurrencySelect?.addEventListener('change', async () => {
     if (concurrencySelect) concurrencySelect.disabled = true;
     try {

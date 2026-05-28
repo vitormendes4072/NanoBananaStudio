@@ -28,7 +28,12 @@ export const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 /** @type {string | undefined} */
 export const apiKey = process.env.GEMINI_API_KEY;
 
-/** @type {Record<string, number>} Cost in USD per generated image */
+/**
+ * Cost in USD per generated image.
+ * Image-gen models are env-var overridable (Google não expõe API de pricing
+ * em tempo real — atualização sem deploy via .env).
+ * @type {Record<string, number>}
+ */
 export const pricingTable = {
   'gemini-2.5-flash': 0.0000001,
   'gemini-2.5-pro': 0.000002,
@@ -37,7 +42,12 @@ export const pricingTable = {
   'gemini-2.0-flash-thinking-exp-01-21': 0.0,
   'imagen-3.0-generate-002': 0.03,
   'imagen-3.0-fast-generate-001': 0.03,
+  'gemini-2.5-flash-image': Number(process.env.PRICE_GEMINI_FLASH_IMAGE) || 0.039,
+  'gemini-3-pro-image-preview': Number(process.env.PRICE_GEMINI_PRO_IMAGE) || 0.134,
 };
+
+/** @type {string} ISO date (YYYY-MM-DD) shown to the user as "tabela atualizada em". */
+export const pricingUpdatedAt = process.env.PRICING_UPDATED_AT || '2026-05-28';
 
 /** @type {string[]} Models allowed for image generation */
 export const allowedModels = ['gemini-2.5-flash-image', 'gemini-3-pro-image-preview'];
