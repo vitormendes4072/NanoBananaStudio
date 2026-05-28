@@ -26,7 +26,6 @@ export async function refreshJobs() {
     if (data.concurrency) concurrencySelect.value = String(data.concurrency);
   } catch {
     queueSummary.textContent = 'Não foi possível atualizar a fila agora.';
-    showToast('Falha ao atualizar a fila. Verifique sua conexão.');
   }
 }
 
@@ -105,7 +104,9 @@ export async function refreshProductModels() {
     if (!response.ok)
       throw new Error(data.error || 'Não foi possível carregar os modelos de produto.');
     state.productModels = Array.isArray(data.productModels) ? data.productModels : [];
-  } catch {
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('[api] refreshProductModels falhou:', e);
     state.productModels = [];
   }
   deps.renderProductModelList();
@@ -121,7 +122,9 @@ export async function refreshImageTemplates() {
     if (!response.ok)
       throw new Error(data.error || 'Não foi possível carregar os templates visuais.');
     state.imageTemplates = Array.isArray(data.imageTemplates) ? data.imageTemplates : [];
-  } catch {
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('[api] refreshImageTemplates falhou:', e);
     state.imageTemplates = [];
   }
   deps.renderImageTemplateList();

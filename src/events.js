@@ -18,7 +18,9 @@ export function bindInteractiveActions() {
         await deps.refreshJobs();
         await deps.refreshUsage();
       } catch (e) {
-        statusBox.textContent = e instanceof Error ? e.message : 'Erro ao cancelar job.';
+        const msg = e instanceof Error ? e.message : 'Erro ao cancelar job.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
         button.disabled = false;
         button.textContent = 'Cancelar';
       }
@@ -94,7 +96,9 @@ export function bindInteractiveActions() {
         statusBox.textContent = 'Fundo removido com sucesso.';
         await deps.refreshCutouts();
       } catch (e) {
-        statusBox.textContent = e instanceof Error ? e.message : 'Falha ao remover o fundo.';
+        const msg = e instanceof Error ? e.message : 'Falha ao remover o fundo.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
       } finally {
         state.cutoutProcessingJobId = null;
         deps.renderJobs(state.lastJobs);
@@ -122,7 +126,9 @@ export function bindInteractiveActions() {
         await deps.refreshJobs();
         await deps.refreshUsage();
       } catch (e) {
-        statusBox.textContent = e instanceof Error ? e.message : 'Falha ao remover a imagem.';
+        const msg = e instanceof Error ? e.message : 'Falha ao remover a imagem.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
         button.disabled = false;
         button.classList.remove('is-busy');
       }
@@ -188,7 +194,9 @@ export function bindInteractiveActions() {
         statusBox.textContent = 'PNG sem fundo removido.';
         await deps.refreshCutouts();
       } catch (e) {
-        statusBox.textContent = e instanceof Error ? e.message : 'Falha ao remover o recorte.';
+        const msg = e instanceof Error ? e.message : 'Falha ao remover o recorte.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
         button.disabled = false;
         button.classList.remove('is-busy');
       }
@@ -242,8 +250,10 @@ export function bindInteractiveActions() {
           ? `Item movido para ${next.trim()}.`
           : 'Item removido da pasta atual.';
       } catch (e) {
-        statusBox.textContent =
+        const msg =
           e instanceof Error ? e.message : 'Não foi possível atualizar a pasta deste item.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
         button.disabled = false;
         button.classList.remove('is-busy');
       }
@@ -269,7 +279,9 @@ export function bindInteractiveActions() {
         statusBox.textContent = 'Recorte removido.';
         await deps.refreshCrops();
       } catch (e) {
-        statusBox.textContent = e instanceof Error ? e.message : 'Falha ao remover o recorte.';
+        const msg = e instanceof Error ? e.message : 'Falha ao remover o recorte.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
         button.disabled = false;
         button.classList.remove('is-busy');
       }
@@ -314,8 +326,10 @@ export function bindInteractiveActions() {
         deps.renderReferencePreview();
         statusBox.textContent = `Fundo removido da referência ${file.name}.`;
       } catch (e) {
-        statusBox.textContent =
+        const msg =
           e instanceof Error ? e.message : 'Não foi possível remover o fundo desta referência.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
         button.disabled = false;
         button.textContent = 'Remover fundo';
       }
@@ -357,8 +371,9 @@ export function bindInteractiveActions() {
         await deps.refreshProductModels();
         statusBox.textContent = `Avaliação grátis de @${alias} concluída: ${deps.getProductModelEvaluationStatusLabel(d.evaluation?.status)}.`;
       } catch (e) {
-        statusBox.textContent =
-          e instanceof Error ? e.message : 'Não foi possível avaliar o modelo.';
+        const msg = e instanceof Error ? e.message : 'Não foi possível avaliar o modelo.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
         button.disabled = false;
         button.textContent = 'Avaliar grátis';
       }
@@ -383,8 +398,9 @@ export function bindInteractiveActions() {
         await deps.refreshProductModels();
         statusBox.textContent = `Avaliação com IA de @${alias} concluída: ${deps.getProductModelEvaluationStatusLabel(d.evaluation?.status)}.`;
       } catch (e) {
-        statusBox.textContent =
-          e instanceof Error ? e.message : 'Não foi possível avaliar o modelo com IA.';
+        const msg = e instanceof Error ? e.message : 'Não foi possível avaliar o modelo com IA.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
         button.disabled = false;
         button.textContent = 'Avaliar com IA';
       }
@@ -412,8 +428,9 @@ export function bindInteractiveActions() {
         deps.renderPromptProductModelMentions();
         statusBox.textContent = `Modelo @${alias} removido.`;
       } catch (e) {
-        statusBox.textContent =
-          e instanceof Error ? e.message : 'Falha ao excluir o modelo de produto.';
+        const msg = e instanceof Error ? e.message : 'Falha ao excluir o modelo de produto.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
       }
     };
   }
@@ -456,8 +473,9 @@ export function bindInteractiveActions() {
         deps.renderPromptImageTemplateMentions();
         statusBox.textContent = `Template #${alias} removido.`;
       } catch (e) {
-        statusBox.textContent =
-          e instanceof Error ? e.message : 'Falha ao excluir o template visual.';
+        const msg = e instanceof Error ? e.message : 'Falha ao excluir o template visual.';
+        statusBox.textContent = msg;
+        showToast(msg, 'error');
       }
     };
   }
@@ -546,8 +564,10 @@ export async function handleFolderAssignment(folderValue) {
     await deps.refreshCutouts();
     await deps.refreshCrops();
   } catch (e) {
-    statusBox.textContent =
+    const msg =
       e instanceof Error ? e.message : 'Não foi possível atualizar a pasta dos itens selecionados.';
+    statusBox.textContent = msg;
+    showToast(msg, 'error');
   } finally {
     deps.updateBulkSelectionUi();
   }
