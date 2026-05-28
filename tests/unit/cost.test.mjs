@@ -72,9 +72,7 @@ describe('extractRetrySeconds', () => {
   it('returns null when retryDelay has no numeric part', () => {
     const parsed = {
       error: {
-        details: [
-          { '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay: 'unknown' },
-        ],
+        details: [{ '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay: 'unknown' }],
       },
     };
     assert.equal(extractRetrySeconds(parsed), null);

@@ -366,7 +366,13 @@ describe('normalizeStoredReferenceImages', () => {
 
   it('normalizes a valid entry', () => {
     const result = normalizeStoredReferenceImages([
-      { id: 'ref-1', name: 'foto.png', mimeType: 'image/png', size: 1000, relativePath: 'refs/foto.png' },
+      {
+        id: 'ref-1',
+        name: 'foto.png',
+        mimeType: 'image/png',
+        size: 1000,
+        relativePath: 'refs/foto.png',
+      },
     ]);
     assert.equal(result.length, 1);
     assert.equal(result[0].relativePath, 'refs/foto.png');
@@ -403,7 +409,10 @@ describe('normalizeReferenceImages', () => {
 
   it('throws for disallowed mime type', () => {
     assert.throws(
-      () => normalizeReferenceImages([{ name: 'f.gif', mimeType: 'image/gif', data: VALID_BASE64_PNG }]),
+      () =>
+        normalizeReferenceImages([
+          { name: 'f.gif', mimeType: 'image/gif', data: VALID_BASE64_PNG },
+        ]),
       { statusCode: 400 }
     );
   });
@@ -493,25 +502,22 @@ describe('normalizeCropSource', () => {
   });
 
   it('throws for non-PNG mime type', () => {
-    assert.throws(
-      () => normalizeCropSource({ mimeType: 'image/jpeg', data: VALID_BASE64_PNG }),
-      { statusCode: 400 }
-    );
+    assert.throws(() => normalizeCropSource({ mimeType: 'image/jpeg', data: VALID_BASE64_PNG }), {
+      statusCode: 400,
+    });
   });
 
   it('throws when data is empty', () => {
-    assert.throws(
-      () => normalizeCropSource({ mimeType: 'image/png', data: '' }),
-      { statusCode: 400 }
-    );
+    assert.throws(() => normalizeCropSource({ mimeType: 'image/png', data: '' }), {
+      statusCode: 400,
+    });
   });
 
   it('throws when buffer exceeds size limit', () => {
     const bigData = Buffer.alloc(16 * 1024 * 1024).toString('base64');
-    assert.throws(
-      () => normalizeCropSource({ mimeType: 'image/png', data: bigData }),
-      { statusCode: 400 }
-    );
+    assert.throws(() => normalizeCropSource({ mimeType: 'image/png', data: bigData }), {
+      statusCode: 400,
+    });
   });
 
   it('returns normalized object for valid PNG crop', () => {
