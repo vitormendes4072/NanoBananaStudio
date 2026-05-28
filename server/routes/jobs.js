@@ -16,6 +16,7 @@ import {
   resolveProductModelsByAlias,
   resolveImageTemplatesByAlias,
   buildBatchId,
+  buildComparisonId,
   pickAllowedValue,
   storeReferenceImages,
   buildJobProductModelMeta,
@@ -83,30 +84,58 @@ router.post('/api/jobs', generationLimiter, (req, res) => {
     ...referenceImages,
   ];
 
-  const model = pickAllowedValue(body.model, allowedModels, defaultModel);
-  const batchId = quantity > 1 ? buildBatchId() : null;
+  const compareModels = Boolean(body.compareModels);
 
   const createdJobs = [];
-  for (let index = 0; index < quantity; index++) {
-    createdJobs.push(
-      createJob({
-        prompt,
-        promptBase,
-        promptOptions,
-        model,
-        referenceImages: mergedReferenceImages,
-        productModels: resolvedProductModels.map(buildJobProductModelMeta),
-        imageTemplates: resolvedImageTemplates.map(buildJobImageTemplateMeta),
-        targetFolder,
-        batchId,
-        batchIndex: quantity > 1 ? index + 1 : null,
-        batchTotal: quantity > 1 ? quantity : null,
-      })
-    );
+
+  if (compareModels) {
+    // One job per allowed model, sharing a comparisonId. Ignores body.model and body.quantity.
+    const comparisonId = buildComparisonId();
+    for (const modelId of allowedModels) {
+      createdJobs.push(
+        createJob({
+          prompt,
+          promptBase,
+          promptOptions,
+          model: modelId,
+          referenceImages: mergedReferenceImages,
+          productModels: resolvedProductModels.map(buildJobProductModelMeta),
+          imageTemplates: resolvedImageTemplates.map(buildJobImageTemplateMeta),
+          targetFolder,
+          batchId: null,
+          batchIndex: null,
+          batchTotal: null,
+          comparisonId,
+        })
+      );
+    }
+  } else {
+    const model = pickAllowedValue(body.model, allowedModels, defaultModel);
+    const batchId = quantity > 1 ? buildBatchId() : null;
+
+    for (let index = 0; index < quantity; index++) {
+      createdJobs.push(
+        createJob({
+          prompt,
+          promptBase,
+          promptOptions,
+          model,
+          referenceImages: mergedReferenceImages,
+          productModels: resolvedProductModels.map(buildJobProductModelMeta),
+          imageTemplates: resolvedImageTemplates.map(buildJobImageTemplateMeta),
+          targetFolder,
+          batchId,
+          batchIndex: quantity > 1 ? index + 1 : null,
+          batchTotal: quantity > 1 ? quantity : null,
+        })
+      );
+    }
   }
   processQueue();
 
-  res.status(202).json({ ok: true, quantity, jobs: createdJobs.map(serializeJob) });
+  res
+    .status(202)
+    .json({ ok: true, quantity: createdJobs.length, jobs: createdJobs.map(serializeJob) });
 });
 
 router.post('/api/jobs/:id/cancel', (req, res) => {

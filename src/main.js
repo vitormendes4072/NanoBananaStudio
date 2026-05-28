@@ -114,7 +114,7 @@ import {
   refreshImageTemplates,
   connectSSE,
 } from './api.js';
-import { costEstimate } from './dom.js';
+import { costEstimate, compareModelsToggle } from './dom.js';
 
 bootstrap();
 
@@ -456,6 +456,23 @@ function formatUpdatedAt(iso) {
 
 export function updateCostEstimate() {
   if (!costEstimate) return;
+  const compare = Boolean(compareModelsToggle?.checked);
+  const updatedAt = formatUpdatedAt(state.pricing.updatedAt);
+
+  if (compare) {
+    const prices = state.pricing.models || {};
+    const entries = Object.entries(prices).filter(([, v]) => typeof v === 'number' && v > 0);
+    if (entries.length === 0) {
+      costEstimate.textContent = 'Custo estimado: indisponível';
+      return;
+    }
+    const total = entries.reduce((sum, [, v]) => sum + v, 0);
+    const label = `${entries.length} imagens (1 por modelo)`;
+    const base = `Custo estimado: ${formatCost(total, state.pricing.currency)} (${label})`;
+    costEstimate.textContent = updatedAt ? `${base} · tabela atualizada em ${updatedAt}` : base;
+    return;
+  }
+
   const model = modelSelect?.value;
   const qty = Math.max(1, parseInt(quantitySelect?.value, 10) || 1);
   const unit = state.pricing.models?.[model];
@@ -466,14 +483,24 @@ export function updateCostEstimate() {
   const total = unit * qty;
   const label =
     qty === 1 ? '1 imagem' : `${qty} imagens × ${formatCost(unit, state.pricing.currency)}`;
-  const updatedAt = formatUpdatedAt(state.pricing.updatedAt);
   const base = `Custo estimado: ${formatCost(total, state.pricing.currency)} (${label})`;
   costEstimate.textContent = updatedAt ? `${base} · tabela atualizada em ${updatedAt}` : base;
+}
+
+function syncCompareModelsState() {
+  const compare = Boolean(compareModelsToggle?.checked);
+  if (modelSelect) modelSelect.disabled = compare;
+  if (quantitySelect) {
+    quantitySelect.disabled = compare;
+    if (compare) quantitySelect.value = '1';
+  }
+  updateCostEstimate();
 }
 
 function bindFormEvents() {
   modelSelect?.addEventListener('change', updateCostEstimate);
   quantitySelect?.addEventListener('change', updateCostEstimate);
+  compareModelsToggle?.addEventListener('change', syncCompareModelsState);
 
   concurrencySelect?.addEventListener('change', async () => {
     if (concurrencySelect) concurrencySelect.disabled = true;
@@ -525,6 +552,7 @@ function bindFormEvents() {
           promptOptions,
           quantity: quantitySelect?.value || 1,
           model: modelSelect?.value || 'gemini-2.5-flash-image',
+          compareModels: Boolean(compareModelsToggle?.checked),
           folder: activeTargetFolder,
           referenceImages: [...regionReferenceImages, ...referenceImages],
           branchReference: state.selectedBranchReference,

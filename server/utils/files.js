@@ -34,6 +34,10 @@ export function buildBatchId() {
   return `batch_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 }
 
+export function buildComparisonId() {
+  return `cmp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+}
+
 export function mimeTypeToExtension(mimeType) {
   if (mimeType === 'image/jpeg') return 'jpg';
   if (mimeType === 'image/webp') return 'webp';
