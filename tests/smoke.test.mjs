@@ -8,6 +8,17 @@ import {
   sanitizePromptOptions,
 } from '../src/prompt-presets-store.js';
 
+// Jobs em processamento quando stopServer() fecha o DB lançam "database connection is not open".
+// Esse erro é esperado no teardown de testes que criam jobs reais com chave fake —
+// o processamento assíncrono termina depois que o DB já foi fechado.
+process.on('unhandledRejection', (reason) => {
+  if (reason instanceof Error && reason.message.includes('database connection is not open')) {
+    return;
+  }
+  // Rejeições inesperadas devem propagar normalmente
+  throw reason;
+});
+
 const projectRoot = path.resolve(process.cwd());
 const queueStatePath = path.join(projectRoot, 'data', 'queue-state.json');
 const cropStatePath = path.join(projectRoot, 'data', 'crops-state.json');
@@ -653,6 +664,120 @@ async function main() {
         'completedJobs no ledger nao deve diminuir apos deletar job'
       );
     });
+
+    await runTest(results, 'POST /api/jobs com prompt vazio retorna 400', async () => {
+      // A rota valida o prompt DEPOIS do check de API key — precisa de chave não-vazia.
+      // O job não é criado: a validação falha antes de chegar à fila.
+      process.env.GEMINI_API_KEY = 'fake-key-smoke-test';
+      try {
+        const response = await fetchJson('/api/jobs', {
+          method: 'POST',
+          body: JSON.stringify({
+            prompt: '   ',
+            model: 'gemini-2.5-flash-image',
+            quantity: 1,
+          }),
+        });
+        assert.equal(response.status, 400);
+        assert.match(response.body.error, /prompt/i);
+      } finally {
+        process.env.GEMINI_API_KEY = '';
+      }
+    });
+
+    await runTest(results, 'POST /api/jobs com modelo invalido usa modelo padrao', async () => {
+      // pickAllowedValue faz fallback silencioso para defaultModel — não lança erro.
+      // Job é criado e vai para a fila; o processamento falha em background (chave fake).
+      // config.js já está em cache (servidor ativo) — import dinâmico retorna o módulo correto.
+      const { defaultModel } = await import('../server/config.js');
+      process.env.GEMINI_API_KEY = 'fake-key-smoke-test';
+      try {
+        const response = await fetchJson('/api/jobs', {
+          method: 'POST',
+          body: JSON.stringify({
+            prompt: 'smoke modelo invalido',
+            model: 'modelo-que-nao-existe',
+            quantity: 1,
+          }),
+        });
+        assert.equal(response.status, 202);
+        assert.equal(response.body.jobs.length, 1);
+        assert.equal(response.body.jobs[0].model, defaultModel);
+      } finally {
+        process.env.GEMINI_API_KEY = '';
+      }
+    });
+
+    await runTest(results, 'referencia com dados corrompidos retorna 400', async () => {
+      // '====' é base64 válido mas decodifica para buffer vazio (0 bytes).
+      // normalizeReferenceImages lança badRequestError ao detectar buffer vazio.
+      // Testado via /api/product-models que não exige GEMINI_API_KEY.
+      const response = await fetchJson('/api/product-models', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: 'Modelo corrompido',
+          alias: 'corrompido-smoke',
+          notes: '',
+          referenceImages: [{ name: 'corrompido.png', mimeType: 'image/png', data: '====' }],
+        }),
+      });
+      assert.equal(response.status, 400);
+      assert.match(response.body.error, /não foi possível ler/i);
+    });
+
+    await runTest(results, 'POST /api/settings normaliza concorrencia fora do range', async () => {
+      // normalizeConcurrency clamps — nunca lança erro, sempre retorna 200.
+      // Nota: a rota usa `req.body.concurrency || state.concurrency`, então 0 é tratado como
+      // "não fornecido" (falsy). Usa-se -1 para testar clamping do mínimo (truthy, clampeia para 1).
+      const r0 = await fetchJson('/api/settings', {
+        method: 'POST',
+        body: JSON.stringify({ concurrency: -1 }),
+      });
+      assert.equal(r0.status, 200);
+      assert.equal(r0.body.concurrency, 1); // abaixo do mínimo → 1
+
+      const r99 = await fetchJson('/api/settings', {
+        method: 'POST',
+        body: JSON.stringify({ concurrency: 99 }),
+      });
+      assert.equal(r99.status, 200);
+      assert.equal(r99.body.concurrency, 5); // acima do máximo → 5
+
+      const rStr = await fetchJson('/api/settings', {
+        method: 'POST',
+        body: JSON.stringify({ concurrency: 'invalido' }),
+      });
+      assert.equal(rStr.status, 200);
+      assert.equal(rStr.body.concurrency, 1); // não numérico → 1
+
+      // Restaurar para 1 para não afetar testes seguintes
+      await fetchJson('/api/settings', {
+        method: 'POST',
+        body: JSON.stringify({ concurrency: 1 }),
+      });
+    });
+
+    await runTest(
+      results,
+      'referencia acima do limite de tamanho por imagem retorna 400',
+      async () => {
+        // 16 MB > maxReferenceBytes (15 MB) mas < maxJsonBodyBytes (60 MB).
+        // normalizeReferenceImages lança badRequestError antes de chegar no body limit.
+        // Testado via /api/product-models que não exige GEMINI_API_KEY.
+        const oversizedData = Buffer.alloc(16 * 1024 * 1024).toString('base64');
+        const response = await fetchJson('/api/product-models', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: 'Modelo grande',
+            alias: 'grande-smoke',
+            notes: '',
+            referenceImages: [{ name: 'grande.png', mimeType: 'image/png', data: oversizedData }],
+          }),
+        });
+        assert.equal(response.status, 400);
+        assert.match(response.body.error, /passou do limite/i);
+      }
+    );
 
     await runTest(
       results,
