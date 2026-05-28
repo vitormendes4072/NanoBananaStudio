@@ -143,13 +143,13 @@ function buildSelectionHandles(sel) {
   };
 }
 
-function getSelectionHandle(point, sel) {
+function getSelectionHandle(point, sel, tolerance = REGION_HANDLE_SIZE) {
   for (const [name, handle] of Object.entries(buildSelectionHandles(sel))) {
     if (
-      point.x >= handle.x - REGION_HANDLE_SIZE &&
-      point.x <= handle.x + REGION_HANDLE_SIZE &&
-      point.y >= handle.y - REGION_HANDLE_SIZE &&
-      point.y <= handle.y + REGION_HANDLE_SIZE
+      point.x >= handle.x - tolerance &&
+      point.x <= handle.x + tolerance &&
+      point.y >= handle.y - tolerance &&
+      point.y <= handle.y + tolerance
     )
       return name;
   }
@@ -327,10 +327,13 @@ async function saveCropFromEditor(cropDataUrl) {
 
 // Canvas event listeners
 regionCanvas.addEventListener('pointerdown', (event) => {
+  if (!event.isPrimary) return;
   if (!state.regionEditorState) return;
+  event.preventDefault();
   const point = getCanvasPoint(event);
+  const tolerance = event.pointerType === 'touch' ? REGION_HANDLE_SIZE * 2 : REGION_HANDLE_SIZE;
   const handle = state.regionEditorState.selection
-    ? getSelectionHandle(point, state.regionEditorState.selection)
+    ? getSelectionHandle(point, state.regionEditorState.selection, tolerance)
     : null;
   const isInside = state.regionEditorState.selection
     ? pointInsideSelection(point, state.regionEditorState.selection)
@@ -357,6 +360,7 @@ regionCanvas.addEventListener('pointerdown', (event) => {
 });
 
 regionCanvas.addEventListener('pointermove', (event) => {
+  if (!event.isPrimary) return;
   if (!state.regionEditorState) return;
   const point = getCanvasPoint(event);
   if (!state.regionEditorState.isDragging || !state.regionEditorState.dragStart) {
@@ -393,7 +397,7 @@ regionCanvas.addEventListener('pointermove', (event) => {
   updateRegionEditorMeta();
 });
 
-regionCanvas.addEventListener('pointerup', (event) => {
+function endDrag(event) {
   if (!state.regionEditorState) return;
   state.regionEditorState.isDragging = false;
   state.regionEditorState.dragMode = null;
@@ -402,7 +406,23 @@ regionCanvas.addEventListener('pointerup', (event) => {
   regionCanvas.releasePointerCapture?.(event.pointerId);
   updateRegionCursor(getCanvasPoint(event));
   updateRegionEditorMeta();
+}
+
+regionCanvas.addEventListener('pointerup', (event) => {
+  if (!event.isPrimary) return;
+  endDrag(event);
 });
+
+// Correção 3: pointercancel dispara quando o OS intercepta o gesto
+// (pull-down de notificação, multi-touch acidental). Sem esse handler,
+// isDragging fica preso em true e o editor congela.
+regionCanvas.addEventListener('pointercancel', (event) => {
+  if (!event.isPrimary) return;
+  endDrag(event);
+});
+
+// Correção 5: impede menu de contexto por long press em dispositivos touch
+regionCanvas.addEventListener('contextmenu', (event) => event.preventDefault());
 
 closeRegionEditorButton.addEventListener('click', () => regionEditor.close());
 
