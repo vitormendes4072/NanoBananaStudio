@@ -1,7 +1,43 @@
 import deps from './deps.js';
 import { state, selectedGalleryIds, selectedCutoutIds, selectedCropIds } from './state.js';
 import { showToast, fileToBase64, base64ToFile } from './utils.js';
-import { statusBox, referencePreview, promptInput } from './dom.js';
+import { statusBox, referencePreview, promptInput, organizeSelectedButton } from './dom.js';
+import {
+  refreshJobs,
+  refreshUsage,
+  refreshCutouts,
+  refreshCrops,
+  refreshProductModels,
+  refreshImageTemplates,
+} from './api.js';
+import {
+  updateBulkSelectionUi,
+  countSelectedFromPayload,
+  clearSelectionsFromPayload,
+} from './selection.js';
+import { renderJobs, buildDisplayPrompt } from './render-queue.js';
+import {
+  getActiveCreationFolder,
+  registerFolderName,
+  selectBranchFromJob,
+  renderBranchPreview,
+  renderRegionPreview,
+  syncReferenceInputFiles,
+  renderReferencePreview,
+} from './main.js';
+import { requestConfirmation, requestFolderSelection } from './dialogs.js';
+import { openRegionEditor } from './region-editor.js';
+import {
+  syncProductModelInputFiles,
+  renderProductModelUploadPreview,
+  insertProductModelMention,
+  getProductModelEvaluationStatusLabel,
+  renderPromptProductModelMentions,
+  syncImageTemplateInputFiles,
+  renderImageTemplateUploadPreview,
+  insertImageTemplateMention,
+  renderPromptImageTemplateMentions,
+} from './render-library.js';
 
 export function bindInteractiveActions() {
   for (const button of document.querySelectorAll('[data-cancel-id]')) {
@@ -15,8 +51,8 @@ export function bindInteractiveActions() {
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Falha ao cancelar job.');
         statusBox.textContent = `Job ${id} cancelado.`;
-        await deps.refreshJobs();
-        await deps.refreshUsage();
+        await refreshJobs();
+        await refreshUsage();
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Erro ao cancelar job.';
         statusBox.textContent = msg;
@@ -53,7 +89,7 @@ export function bindInteractiveActions() {
       if (!set) return;
       if (input.checked) set.add(id);
       else set.delete(id);
-      deps.updateBulkSelectionUi();
+      updateBulkSelectionUi();
     };
   }
   for (const button of document.querySelectorAll('[data-toggle-text]')) {
@@ -76,9 +112,9 @@ export function bindInteractiveActions() {
       button.textContent = 'Removendo...';
       statusBox.textContent = 'Removendo fundo da imagem...';
       state.cutoutProcessingJobId = job.id;
-      deps.renderJobs(state.lastJobs);
-      const folder = deps.getActiveCreationFolder();
-      if (folder) deps.registerFolderName(folder);
+      renderJobs(state.lastJobs);
+      const folder = getActiveCreationFolder();
+      if (folder) registerFolderName(folder);
       try {
         const r = await fetch('/api/cutouts', {
           method: 'POST',
@@ -87,21 +123,21 @@ export function bindInteractiveActions() {
             jobId: job.id,
             imageUrl: job.result.imageUrl,
             filename: job.result.filename,
-            label: deps.buildDisplayPrompt(job),
+            label: buildDisplayPrompt(job),
             folder,
           }),
         });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Falha ao remover o fundo.');
         statusBox.textContent = 'Fundo removido com sucesso.';
-        await deps.refreshCutouts();
+        await refreshCutouts();
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Falha ao remover o fundo.';
         statusBox.textContent = msg;
         showToast(msg, 'error');
       } finally {
         state.cutoutProcessingJobId = null;
-        deps.renderJobs(state.lastJobs);
+        renderJobs(state.lastJobs);
       }
     };
   }
@@ -109,7 +145,7 @@ export function bindInteractiveActions() {
     button.onclick = async () => {
       const jobId = button.getAttribute('data-delete-job-id');
       const confirmed = jobId
-        ? await deps.requestConfirmation({
+        ? await requestConfirmation({
             title: 'Remover imagem',
             message: 'Remover esta imagem da galeria?',
             confirmLabel: 'Remover',
@@ -123,8 +159,8 @@ export function bindInteractiveActions() {
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Falha ao remover a imagem.');
         statusBox.textContent = 'Imagem removida da galeria.';
-        await deps.refreshJobs();
-        await deps.refreshUsage();
+        await refreshJobs();
+        await refreshUsage();
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Falha ao remover a imagem.';
         statusBox.textContent = msg;
@@ -135,18 +171,17 @@ export function bindInteractiveActions() {
     };
   }
   for (const button of document.querySelectorAll('[data-branch-job-id]')) {
-    button.onclick = () =>
-      deps.selectBranchFromJob(button.getAttribute('data-branch-job-id'), false);
+    button.onclick = () => selectBranchFromJob(button.getAttribute('data-branch-job-id'), false);
   }
   for (const button of document.querySelectorAll('[data-branch-keep-prompt-id]')) {
     button.onclick = () =>
-      deps.selectBranchFromJob(button.getAttribute('data-branch-keep-prompt-id'), true);
+      selectBranchFromJob(button.getAttribute('data-branch-keep-prompt-id'), true);
   }
   for (const button of document.querySelectorAll('[data-crop-job-id]')) {
-    button.onclick = () => deps.openRegionEditor(button.getAttribute('data-crop-job-id'), 'crop');
+    button.onclick = () => openRegionEditor(button.getAttribute('data-crop-job-id'), 'crop');
   }
   for (const button of document.querySelectorAll('[data-region-job-id]')) {
-    button.onclick = () => deps.openRegionEditor(button.getAttribute('data-region-job-id'));
+    button.onclick = () => openRegionEditor(button.getAttribute('data-region-job-id'));
   }
   for (const button of document.querySelectorAll('[data-use-cutout-base]')) {
     button.onclick = async () => {
@@ -164,8 +199,8 @@ export function bindInteractiveActions() {
           name: item.label || 'Recorte sem fundo',
         };
         state.selectedRegionReference = null;
-        deps.renderBranchPreview();
-        deps.renderRegionPreview();
+        renderBranchPreview();
+        renderRegionPreview();
         statusBox.textContent = 'Recorte carregado como imagem base.';
         promptInput.focus();
       } catch (e) {
@@ -178,7 +213,7 @@ export function bindInteractiveActions() {
     button.onclick = async () => {
       const id = button.getAttribute('data-delete-cutout-id');
       const ok = id
-        ? await deps.requestConfirmation({
+        ? await requestConfirmation({
             title: 'Remover imagem',
             message: 'Remover este PNG sem fundo?',
             confirmLabel: 'Remover',
@@ -192,7 +227,7 @@ export function bindInteractiveActions() {
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Falha ao remover o recorte.');
         statusBox.textContent = 'PNG sem fundo removido.';
-        await deps.refreshCutouts();
+        await refreshCutouts();
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Falha ao remover o recorte.';
         statusBox.textContent = msg;
@@ -218,8 +253,8 @@ export function bindInteractiveActions() {
           name: item.label || 'Recorte',
         };
         state.selectedRegionReference = null;
-        deps.renderBranchPreview();
-        deps.renderRegionPreview();
+        renderBranchPreview();
+        renderRegionPreview();
         statusBox.textContent = 'Recorte carregado como imagem base.';
         promptInput.focus();
       } catch (e) {
@@ -236,7 +271,7 @@ export function bindInteractiveActions() {
         id = button.getAttribute('data-assign-folder-id'),
         currentFolder = button.getAttribute('data-current-folder') || '';
       if (!kind || !id) return;
-      const next = await deps.requestFolderSelection({
+      const next = await requestFolderSelection({
         title: 'Organizar item',
         message: 'Selecione uma pasta existente ou digite uma nova para este item.',
         currentFolder,
@@ -245,7 +280,7 @@ export function bindInteractiveActions() {
       button.disabled = true;
       button.classList.add('is-busy');
       try {
-        await deps.handleSingleFolderAssignment(kind, id, next);
+        await handleSingleFolderAssignment(kind, id, next);
         statusBox.textContent = next.trim()
           ? `Item movido para ${next.trim()}.`
           : 'Item removido da pasta atual.';
@@ -263,7 +298,7 @@ export function bindInteractiveActions() {
     button.onclick = async () => {
       const id = button.getAttribute('data-delete-crop-id');
       const ok = id
-        ? await deps.requestConfirmation({
+        ? await requestConfirmation({
             title: 'Remover imagem',
             message: 'Remover este recorte salvo?',
             confirmLabel: 'Remover',
@@ -277,7 +312,7 @@ export function bindInteractiveActions() {
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Falha ao remover o recorte.');
         statusBox.textContent = 'Recorte removido.';
-        await deps.refreshCrops();
+        await refreshCrops();
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Falha ao remover o recorte.';
         statusBox.textContent = msg;
@@ -292,8 +327,8 @@ export function bindInteractiveActions() {
       const i = Number(button.getAttribute('data-remove-reference'));
       if (!Number.isFinite(i)) return;
       state.selectedReferenceFiles.splice(i, 1);
-      deps.syncReferenceInputFiles();
-      deps.renderReferencePreview();
+      syncReferenceInputFiles();
+      renderReferencePreview();
     };
   }
   for (const button of referencePreview.querySelectorAll('[data-remove-reference-bg]')) {
@@ -322,8 +357,8 @@ export function bindInteractiveActions() {
           d.referenceImage?.name || `${file.name.replace(/\.[^.]+$/, '')}-sem-fundo.png`,
           d.referenceImage?.mimeType || 'image/png'
         );
-        deps.syncReferenceInputFiles();
-        deps.renderReferencePreview();
+        syncReferenceInputFiles();
+        renderReferencePreview();
         statusBox.textContent = `Fundo removido da referência ${file.name}.`;
       } catch (e) {
         const msg =
@@ -340,15 +375,15 @@ export function bindInteractiveActions() {
       const i = Number(button.getAttribute('data-remove-product-model-file'));
       if (!Number.isFinite(i)) return;
       state.selectedProductModelFiles.splice(i, 1);
-      deps.syncProductModelInputFiles();
-      deps.renderProductModelUploadPreview();
+      syncProductModelInputFiles();
+      renderProductModelUploadPreview();
     };
   }
   for (const button of document.querySelectorAll('[data-insert-product-model]')) {
     button.onclick = () => {
       const alias = button.getAttribute('data-insert-product-model');
       if (!alias) return;
-      deps.insertProductModelMention(alias);
+      insertProductModelMention(alias);
       statusBox.textContent = `@${alias} inserido no prompt.`;
     };
   }
@@ -368,8 +403,8 @@ export function bindInteractiveActions() {
         });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Não foi possível avaliar o modelo.');
-        await deps.refreshProductModels();
-        statusBox.textContent = `Avaliação grátis de @${alias} concluída: ${deps.getProductModelEvaluationStatusLabel(d.evaluation?.status)}.`;
+        await refreshProductModels();
+        statusBox.textContent = `Avaliação grátis de @${alias} concluída: ${getProductModelEvaluationStatusLabel(d.evaluation?.status)}.`;
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Não foi possível avaliar o modelo.';
         statusBox.textContent = msg;
@@ -395,8 +430,8 @@ export function bindInteractiveActions() {
         });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Não foi possível avaliar o modelo com IA.');
-        await deps.refreshProductModels();
-        statusBox.textContent = `Avaliação com IA de @${alias} concluída: ${deps.getProductModelEvaluationStatusLabel(d.evaluation?.status)}.`;
+        await refreshProductModels();
+        statusBox.textContent = `Avaliação com IA de @${alias} concluída: ${getProductModelEvaluationStatusLabel(d.evaluation?.status)}.`;
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Não foi possível avaliar o modelo com IA.';
         statusBox.textContent = msg;
@@ -411,7 +446,7 @@ export function bindInteractiveActions() {
       const alias = button.getAttribute('data-delete-product-model');
       if (!alias || !state.productModels.find((e) => e.alias === alias)) return;
       if (
-        !(await deps.requestConfirmation({
+        !(await requestConfirmation({
           title: 'Excluir modelo de produto',
           message: `Excluir o modelo @${alias}? As referências salvas dele serão removidas.`,
           confirmLabel: 'Excluir',
@@ -424,8 +459,8 @@ export function bindInteractiveActions() {
         });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Falha ao excluir o modelo de produto.');
-        await deps.refreshProductModels();
-        deps.renderPromptProductModelMentions();
+        await refreshProductModels();
+        renderPromptProductModelMentions();
         statusBox.textContent = `Modelo @${alias} removido.`;
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Falha ao excluir o modelo de produto.';
@@ -439,15 +474,15 @@ export function bindInteractiveActions() {
       const i = Number(button.getAttribute('data-remove-image-template-file'));
       if (!Number.isFinite(i)) return;
       state.selectedImageTemplateFiles.splice(i, 1);
-      deps.syncImageTemplateInputFiles();
-      deps.renderImageTemplateUploadPreview();
+      syncImageTemplateInputFiles();
+      renderImageTemplateUploadPreview();
     };
   }
   for (const button of document.querySelectorAll('[data-insert-image-template]')) {
     button.onclick = () => {
       const alias = button.getAttribute('data-insert-image-template');
       if (!alias) return;
-      deps.insertImageTemplateMention(alias);
+      insertImageTemplateMention(alias);
       statusBox.textContent = `#${alias} inserido no prompt.`;
     };
   }
@@ -456,7 +491,7 @@ export function bindInteractiveActions() {
       const alias = button.getAttribute('data-delete-image-template');
       if (!alias || !state.imageTemplates.find((e) => e.alias === alias)) return;
       if (
-        !(await deps.requestConfirmation({
+        !(await requestConfirmation({
           title: 'Excluir template visual',
           message: `Excluir o template #${alias}? As referências salvas dele serão removidas.`,
           confirmLabel: 'Excluir',
@@ -469,8 +504,8 @@ export function bindInteractiveActions() {
         });
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || 'Falha ao excluir o template visual.');
-        await deps.refreshImageTemplates();
-        deps.renderPromptImageTemplateMentions();
+        await refreshImageTemplates();
+        renderPromptImageTemplateMentions();
         statusBox.textContent = `Template #${alias} removido.`;
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Falha ao excluir o template visual.';
@@ -491,13 +526,13 @@ export async function handleBulkRemoval({
   refreshers,
 }) {
   const payload = typeof getPayload === 'function' ? getPayload() : {};
-  const selectedCount = deps.countSelectedFromPayload(payload);
+  const selectedCount = countSelectedFromPayload(payload);
   if (!button || selectedCount === 0) {
     statusBox.textContent = 'Selecione pelo menos um item antes de remover.';
     return;
   }
   if (
-    !(await deps.requestConfirmation({
+    !(await requestConfirmation({
       title: 'Confirmar remoção',
       message: confirmMessage,
       confirmLabel: 'Remover',
@@ -516,8 +551,8 @@ export async function handleBulkRemoval({
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || 'Falha ao remover em lote.');
     for (const refresh of refreshers) await refresh();
-    deps.clearSelectionsFromPayload(payload);
-    deps.updateBulkSelectionUi();
+    clearSelectionsFromPayload(payload);
+    updateBulkSelectionUi();
     statusBox.textContent = successMessage;
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Falha ao remover em lote.';
@@ -543,8 +578,8 @@ export async function handleFolderAssignment(folderValue) {
     statusBox.textContent = 'Informe uma pasta antes de mover os itens.';
     return;
   }
-  if (f) deps.registerFolderName(f);
-  if (deps.organizeSelectedButton) deps.organizeSelectedButton.disabled = true;
+  if (f) registerFolderName(f);
+  if (organizeSelectedButton) organizeSelectedButton.disabled = true;
   statusBox.textContent = f
     ? `Movendo ${total} item(ns) para a pasta ${f}...`
     : `Removendo ${total} item(ns) da pasta atual...`;
@@ -560,22 +595,22 @@ export async function handleFolderAssignment(folderValue) {
     statusBox.textContent = f
       ? `${d.updated.total} item(ns) movido(s) para ${f}.`
       : `${d.updated.total} item(ns) voltaram para a raiz organizada por data.`;
-    await deps.refreshJobs();
-    await deps.refreshCutouts();
-    await deps.refreshCrops();
+    await refreshJobs();
+    await refreshCutouts();
+    await refreshCrops();
   } catch (e) {
     const msg =
       e instanceof Error ? e.message : 'Não foi possível atualizar a pasta dos itens selecionados.';
     statusBox.textContent = msg;
     showToast(msg, 'error');
   } finally {
-    deps.updateBulkSelectionUi();
+    updateBulkSelectionUi();
   }
 }
 
 export async function handleSingleFolderAssignment(kind, id, folderValue) {
   const f = String(folderValue || '').trim();
-  if (f) deps.registerFolderName(f);
+  if (f) registerFolderName(f);
   const payload = { folder: f, jobs: [], cutouts: [], crops: [] };
   if (kind === 'job') payload.jobs = [id];
   else if (kind === 'cutout') payload.cutouts = [id];
@@ -595,9 +630,9 @@ export async function handleSingleFolderAssignment(kind, id, folderValue) {
   const d = await r.json();
   if (!r.ok) throw new Error(d.error || 'Não foi possível atualizar a pasta deste item.');
   statusBox.textContent = f ? `Item movido para ${f}.` : 'Item removido da pasta atual.';
-  await deps.refreshJobs();
-  await deps.refreshCutouts();
-  await deps.refreshCrops();
+  await refreshJobs();
+  await refreshCutouts();
+  await refreshCrops();
 }
 
 deps.bindInteractiveActions = bindInteractiveActions;

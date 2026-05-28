@@ -1,6 +1,12 @@
 import deps from './deps.js';
 import { state, PROMPT_PRESETS } from './state.js';
 import { escapeHtml, slugifyProductModelAlias, slugifyImageTemplateAlias } from './utils.js';
+import { buildPromptDetailsSummary, humanizePromptFocus } from './render-queue.js';
+import {
+  renderPromptProductModelMentions,
+  renderPromptImageTemplateMentions,
+} from './render-library.js';
+import { requestConfirmation } from './dialogs.js';
 import {
   promptInput,
   promptAutocomplete,
@@ -109,11 +115,11 @@ export function buildLocalizedPrompt(prompt, promptOptions = {}, regionReference
       `Use o template visual #${template.alias} como linguagem principal da imagem, mantendo o padrão visual ${template.name}.`
     );
     if (template.notes) sections.push(`Diretrizes obrigatorias do template: ${template.notes}.`);
-    const templateOptionsSummary = deps.buildPromptDetailsSummary(template.promptOptions);
+    const templateOptionsSummary = buildPromptDetailsSummary(template.promptOptions);
     if (templateOptionsSummary) sections.push(`Ajustes do template: ${templateOptionsSummary}.`);
   }
   if (promptOptions.renderFocus)
-    sections.push(`Foco principal: ${deps.humanizePromptFocus(promptOptions.renderFocus)}.`);
+    sections.push(`Foco principal: ${humanizePromptFocus(promptOptions.renderFocus)}.`);
   if (promptOptions.aspectRatio)
     sections.push(`Use proporção de imagem ${promptOptions.aspectRatio}.`);
   if (promptOptions.promptStrength === 'strong')
@@ -178,7 +184,7 @@ function buildPromptAutocompleteOptions(query) {
         marker: '#',
         alias: e.alias,
         name: e.name,
-        meta: e.notes || deps.buildPromptDetailsSummary(e.promptOptions) || 'Template visual',
+        meta: e.notes || buildPromptDetailsSummary(e.promptOptions) || 'Template visual',
       }));
   }
   return [];
@@ -274,8 +280,8 @@ function applyPromptAutocompleteOption(index) {
   promptInput.value = nextValue;
   promptInput.focus();
   promptInput.setSelectionRange(caret, caret);
-  deps.renderPromptProductModelMentions();
-  deps.renderPromptImageTemplateMentions();
+  renderPromptProductModelMentions();
+  renderPromptImageTemplateMentions();
   hidePromptAutocomplete();
 }
 
@@ -312,7 +318,7 @@ export function renderCustomPromptPresets() {
     <article class="custom-preset-item">
       <div class="custom-preset-meta">
         <p class="custom-preset-name">${escapeHtml(preset.name)}</p>
-        <p class="custom-preset-summary">${escapeHtml(deps.buildPromptDetailsSummary(preset.options) || 'Preset salvo pronto para reutilizar.')}</p>
+        <p class="custom-preset-summary">${escapeHtml(buildPromptDetailsSummary(preset.options) || 'Preset salvo pronto para reutilizar.')}</p>
       </div>
       <div class="custom-preset-actions">
         <button class="ghost-button custom-preset-apply" type="button" data-apply-custom-preset="${escapeHtml(preset.id)}">Aplicar</button>
@@ -342,7 +348,7 @@ function bindCustomPresetActions() {
       const presetId = button.getAttribute('data-delete-custom-preset');
       const preset = state.customPromptPresets.find((e) => e.id === presetId);
       if (!preset) return;
-      const confirmed = await deps.requestConfirmation({
+      const confirmed = await requestConfirmation({
         title: 'Excluir preset',
         message: `Excluir o preset "${preset.name}"?`,
         confirmLabel: 'Excluir',

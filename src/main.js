@@ -61,17 +61,48 @@ import {
   composerPanel,
 } from './dom.js';
 
-import './selection.js';
+import {
+  toggleSectionSelection,
+  exportSelectedItems,
+  applySectionSelection,
+  getSharedSelectedFolder,
+} from './selection.js';
 import './render-usage.js';
-import './render-analytics.js';
-import './render-folders.js';
-import './render-queue.js';
-import './render-media.js';
-import './prompt.js';
-import './render-library.js';
-import './dialogs.js';
-import './composer.js';
-import './events.js';
+import { refreshAnalytics } from './render-analytics.js';
+import { renderFolderBoard } from './render-folders.js';
+import { renderJobs, buildDisplayPrompt } from './render-queue.js';
+import { renderCutouts, renderCrops } from './render-media.js';
+import {
+  updatePromptAutocomplete,
+  hidePromptAutocomplete,
+  handlePromptAutocompleteKeydown,
+  applyPromptPreset,
+  saveCurrentPromptPreset,
+  resolvePromptProductModels,
+  resolvePromptImageTemplates,
+  collectPromptOptions,
+  buildLocalizedPrompt,
+  hydratePromptOptions,
+  renderCustomPromptPresets,
+} from './prompt.js';
+import {
+  renderProductModelUploadPreview,
+  renderImageTemplateUploadPreview,
+  renderPromptProductModelMentions,
+  renderPromptImageTemplateMentions,
+  saveProductModel,
+  saveImageTemplate,
+  syncProductModelInputFiles,
+  syncImageTemplateInputFiles,
+} from './render-library.js';
+import { requestFolderSelection } from './dialogs.js';
+import {
+  requestComposerPanelPinning,
+  toggleComposerExpanded,
+  isComposerExpanded,
+  collapseComposer,
+} from './composer.js';
+import { bindInteractiveActions, handleBulkRemoval, handleFolderAssignment } from './events.js';
 import './region-editor.js';
 import {
   refreshJobs,
@@ -82,7 +113,6 @@ import {
   refreshImageTemplates,
   connectSSE,
 } from './api.js';
-import { refreshAnalytics } from './render-analytics.js';
 
 bootstrap();
 
@@ -128,12 +158,12 @@ function renderInitialState() {
   renderBranchPreview();
   renderRegionPreview();
   renderReferencePreview();
-  deps.renderProductModelUploadPreview();
-  deps.renderImageTemplateUploadPreview();
-  deps.renderCustomPromptPresets();
+  renderProductModelUploadPreview();
+  renderImageTemplateUploadPreview();
+  renderCustomPromptPresets();
   syncAdvancedPromptCollapsedState();
   syncSectionCollapsedState();
-  deps.requestComposerPanelPinning();
+  requestComposerPanelPinning();
 }
 
 async function refreshInitialData() {
@@ -151,30 +181,30 @@ async function refreshInitialData() {
 
 function bindPromptEvents() {
   promptInput?.addEventListener('input', () => {
-    deps.renderPromptProductModelMentions();
-    deps.renderPromptImageTemplateMentions();
-    deps.updatePromptAutocomplete();
+    renderPromptProductModelMentions();
+    renderPromptImageTemplateMentions();
+    updatePromptAutocomplete();
   });
-  promptInput?.addEventListener('click', () => deps.updatePromptAutocomplete());
+  promptInput?.addEventListener('click', () => updatePromptAutocomplete());
   promptInput?.addEventListener('keyup', (event) => {
     if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(event.key)) {
       return;
     }
-    deps.updatePromptAutocomplete();
+    updatePromptAutocomplete();
   });
   promptInput?.addEventListener('blur', () => {
-    window.setTimeout(() => deps.hidePromptAutocomplete(), 120);
+    window.setTimeout(() => hidePromptAutocomplete(), 120);
   });
-  promptInput?.addEventListener('keydown', deps.handlePromptAutocompleteKeydown);
+  promptInput?.addEventListener('keydown', handlePromptAutocompleteKeydown);
 
   for (const button of document.querySelectorAll('[data-prompt-preset]')) {
-    button.addEventListener('click', () => deps.applyPromptPreset(button.dataset.promptPreset));
+    button.addEventListener('click', () => applyPromptPreset(button.dataset.promptPreset));
   }
-  saveCustomPresetButton?.addEventListener('click', deps.saveCurrentPromptPreset);
+  saveCustomPresetButton?.addEventListener('click', saveCurrentPromptPreset);
   customPresetNameInput?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
-      deps.saveCurrentPromptPreset();
+      saveCurrentPromptPreset();
     }
   });
   promptAutocomplete?.addEventListener('mousedown', (event) => event.preventDefault());
@@ -182,21 +212,21 @@ function bindPromptEvents() {
 
 function bindFilterEvents() {
   const rerenderAll = () => {
-    deps.renderJobs(state.lastJobs);
-    deps.renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
-    deps.renderCrops(state.lastCrops);
-    deps.renderFolderBoard();
+    renderJobs(state.lastJobs);
+    renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
+    renderCrops(state.lastCrops);
+    renderFolderBoard();
   };
 
-  searchInput?.addEventListener('input', () => deps.renderJobs(state.lastJobs));
-  queueFilter?.addEventListener('change', () => deps.renderJobs(state.lastJobs));
-  queueModelFilter?.addEventListener('change', () => deps.renderJobs(state.lastJobs));
-  galleryFilter?.addEventListener('change', () => deps.renderJobs(state.lastJobs));
-  galleryFolderFilter?.addEventListener('change', () => deps.renderJobs(state.lastJobs));
+  searchInput?.addEventListener('input', () => renderJobs(state.lastJobs));
+  queueFilter?.addEventListener('change', () => renderJobs(state.lastJobs));
+  queueModelFilter?.addEventListener('change', () => renderJobs(state.lastJobs));
+  galleryFilter?.addEventListener('change', () => renderJobs(state.lastJobs));
+  galleryFolderFilter?.addEventListener('change', () => renderJobs(state.lastJobs));
   cutoutFolderFilter?.addEventListener('change', () =>
-    deps.renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId))
+    renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId))
   );
-  cropFolderFilter?.addEventListener('change', () => deps.renderCrops(state.lastCrops));
+  cropFolderFilter?.addEventListener('change', () => renderCrops(state.lastCrops));
   viewModeSelect?.addEventListener('change', rerenderAll);
   folderFilterInput?.addEventListener('input', rerenderAll);
 
@@ -216,48 +246,48 @@ function bindFilterEvents() {
 
 function bindBulkEvents() {
   selectGalleryBulkButton?.addEventListener('click', () => {
-    deps.toggleSectionSelection(
+    toggleSectionSelection(
       state.lastJobs.filter((job) => job.status === 'completed' && job.result).map((job) => job.id),
       selectedGalleryIds
     );
-    deps.renderJobs(state.lastJobs);
+    renderJobs(state.lastJobs);
   });
   selectCutoutsBulkButton?.addEventListener('click', () => {
-    deps.toggleSectionSelection(
+    toggleSectionSelection(
       state.lastCutouts.map((item) => item.id),
       selectedCutoutIds
     );
-    deps.renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
+    renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
   });
   selectCropsBulkButton?.addEventListener('click', () => {
-    deps.toggleSectionSelection(
+    toggleSectionSelection(
       state.lastCrops.map((item) => item.id),
       selectedCropIds
     );
-    deps.renderCrops(state.lastCrops);
+    renderCrops(state.lastCrops);
   });
   selectAllMediaButton?.addEventListener('click', toggleAllMediaSelection);
 
   downloadGalleryBulkButton?.addEventListener('click', () =>
-    deps.exportSelectedItems(
+    exportSelectedItems(
       { jobs: Array.from(selectedGalleryIds) },
       'Selecione pelo menos uma imagem da Galeria para baixar.'
     )
   );
   downloadCutoutsBulkButton?.addEventListener('click', () =>
-    deps.exportSelectedItems(
+    exportSelectedItems(
       { cutouts: Array.from(selectedCutoutIds) },
       'Selecione pelo menos um item em Remover fundo para baixar.'
     )
   );
   downloadCropsBulkButton?.addEventListener('click', () =>
-    deps.exportSelectedItems(
+    exportSelectedItems(
       { crops: Array.from(selectedCropIds) },
       'Selecione pelo menos um recorte para baixar.'
     )
   );
   downloadAllMediaButton?.addEventListener('click', () =>
-    deps.exportSelectedItems(
+    exportSelectedItems(
       {
         jobs: Array.from(selectedGalleryIds),
         cutouts: Array.from(selectedCutoutIds),
@@ -268,7 +298,7 @@ function bindBulkEvents() {
   );
 
   clearGalleryBulkButton?.addEventListener('click', () =>
-    deps.handleBulkRemoval({
+    handleBulkRemoval({
       button: clearGalleryBulkButton,
       endpoint: '/api/jobs/bulk',
       getPayload: () => ({ ids: Array.from(selectedGalleryIds) }),
@@ -279,7 +309,7 @@ function bindBulkEvents() {
     })
   );
   clearCutoutsBulkButton?.addEventListener('click', () =>
-    deps.handleBulkRemoval({
+    handleBulkRemoval({
       button: clearCutoutsBulkButton,
       endpoint: '/api/cutouts/bulk',
       getPayload: () => ({ ids: Array.from(selectedCutoutIds) }),
@@ -290,7 +320,7 @@ function bindBulkEvents() {
     })
   );
   clearCropsBulkButton?.addEventListener('click', () =>
-    deps.handleBulkRemoval({
+    handleBulkRemoval({
       button: clearCropsBulkButton,
       endpoint: '/api/crops/bulk',
       getPayload: () => ({ ids: Array.from(selectedCropIds) }),
@@ -301,7 +331,7 @@ function bindBulkEvents() {
     })
   );
   clearAllMediaButton?.addEventListener('click', () =>
-    deps.handleBulkRemoval({
+    handleBulkRemoval({
       button: clearAllMediaButton,
       endpoint: '/api/library/bulk',
       getPayload: () => ({
@@ -319,18 +349,18 @@ function bindBulkEvents() {
 
 function bindFolderEvents() {
   organizeSelectedButton?.addEventListener('click', async () => {
-    const nextFolder = await deps.requestFolderSelection({
+    const nextFolder = await requestFolderSelection({
       title: 'Organizar selecionados',
       message: 'Selecione uma pasta existente ou digite uma nova para os itens selecionados.',
-      currentFolder: deps.getSharedSelectedFolder(),
+      currentFolder: getSharedSelectedFolder(),
     });
     if (nextFolder !== null) {
-      await deps.handleFolderAssignment(nextFolder);
+      await handleFolderAssignment(nextFolder);
     }
   });
 
   createFolderButton?.addEventListener('click', async () => {
-    const nextFolder = await deps.requestFolderSelection({
+    const nextFolder = await requestFolderSelection({
       title: 'Criar pasta',
       message: 'Digite o nome da nova pasta ou selecione uma existente para ativar esse filtro.',
       currentFolder: getActiveCreationFolder(),
@@ -343,10 +373,10 @@ function bindFolderEvents() {
     }
     registerFolderName(normalizedFolder);
     if (folderFilterInput) folderFilterInput.value = normalizedFolder;
-    deps.renderJobs(state.lastJobs);
-    deps.renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
-    deps.renderCrops(state.lastCrops);
-    deps.renderFolderBoard();
+    renderJobs(state.lastJobs);
+    renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
+    renderCrops(state.lastCrops);
+    renderFolderBoard();
     statusBox.textContent = `Pasta ${normalizedFolder} pronta para uso.`;
   });
 }
@@ -364,35 +394,35 @@ function bindUploadEvents() {
   productModelImagesInput?.addEventListener('change', () => {
     const incomingFiles = Array.from(productModelImagesInput.files || []);
     state.selectedProductModelFiles = incomingFiles.slice(0, MAX_REFERENCE_IMAGES);
-    deps.syncProductModelInputFiles();
-    deps.renderProductModelUploadPreview();
+    syncProductModelInputFiles();
+    renderProductModelUploadPreview();
   });
   imageTemplateImagesInput?.addEventListener('change', () => {
     const incomingFiles = Array.from(imageTemplateImagesInput.files || []);
     state.selectedImageTemplateFiles = incomingFiles.slice(0, MAX_REFERENCE_IMAGES);
-    deps.syncImageTemplateInputFiles();
-    deps.renderImageTemplateUploadPreview();
+    syncImageTemplateInputFiles();
+    renderImageTemplateUploadPreview();
   });
 
-  document.querySelector('#save-product-model')?.addEventListener('click', deps.saveProductModel);
-  document.querySelector('#save-image-template')?.addEventListener('click', deps.saveImageTemplate);
+  document.querySelector('#save-product-model')?.addEventListener('click', saveProductModel);
+  document.querySelector('#save-image-template')?.addEventListener('click', saveImageTemplate);
 }
 
 function bindComposerEvents() {
-  window.addEventListener('scroll', deps.requestComposerPanelPinning, { passive: true });
-  window.addEventListener('resize', deps.requestComposerPanelPinning);
-  window.addEventListener('load', deps.requestComposerPanelPinning);
+  window.addEventListener('scroll', requestComposerPanelPinning, { passive: true });
+  window.addEventListener('resize', requestComposerPanelPinning);
+  window.addEventListener('load', requestComposerPanelPinning);
   if (typeof ResizeObserver !== 'undefined' && appLayout && composerPanel) {
-    const composerResizeObserver = new ResizeObserver(() => deps.requestComposerPanelPinning());
+    const composerResizeObserver = new ResizeObserver(() => requestComposerPanelPinning());
     composerResizeObserver.observe(appLayout);
     composerResizeObserver.observe(composerPanel);
   }
   document
     .querySelector('#composer-expand-button')
-    ?.addEventListener('click', deps.toggleComposerExpanded);
+    ?.addEventListener('click', toggleComposerExpanded);
   window.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && deps.isComposerExpanded()) {
-      deps.collapseComposer();
+    if (event.key === 'Escape' && isComposerExpanded()) {
+      collapseComposer();
     }
   });
 }
@@ -413,7 +443,7 @@ function bindCollapseEvents() {
       };
       persistCollapsedSections();
       syncSectionCollapsedState();
-      deps.requestComposerPanelPinning();
+      requestComposerPanelPinning();
     });
   }
 }
@@ -446,10 +476,10 @@ function bindFormEvents() {
 
     const activeTargetFolder = getActiveCreationFolder();
     if (activeTargetFolder) registerFolderName(activeTargetFolder);
-    const promptResolution = deps.resolvePromptProductModels(promptInput.value);
-    const templateResolution = deps.resolvePromptImageTemplates(promptResolution.cleanPrompt);
+    const promptResolution = resolvePromptProductModels(promptInput.value);
+    const templateResolution = resolvePromptImageTemplates(promptResolution.cleanPrompt);
     const promptBase = templateResolution.cleanPrompt || promptInput.value.trim();
-    const promptOptions = deps.collectPromptOptions();
+    const promptOptions = collectPromptOptions();
     const regionReferenceImages = state.selectedRegionReference?.payload
       ? [state.selectedRegionReference.payload]
       : [];
@@ -462,11 +492,7 @@ function bindFormEvents() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           promptBase,
-          prompt: deps.buildLocalizedPrompt(
-            promptBase,
-            promptOptions,
-            state.selectedRegionReference
-          ),
+          prompt: buildLocalizedPrompt(promptBase, promptOptions, state.selectedRegionReference),
           promptOptions,
           quantity: quantitySelect?.value || 1,
           model: modelSelect?.value || 'gemini-2.5-flash-image',
@@ -512,12 +538,12 @@ function toggleAllMediaSelection() {
   const selectedTotal = selectedGalleryIds.size + selectedCutoutIds.size + selectedCropIds.size;
   const shouldSelectAll = totalIds > 0 && selectedTotal !== totalIds;
 
-  deps.applySectionSelection(galleryIds, selectedGalleryIds, shouldSelectAll);
-  deps.applySectionSelection(cutoutIds, selectedCutoutIds, shouldSelectAll);
-  deps.applySectionSelection(cropIds, selectedCropIds, shouldSelectAll);
-  deps.renderJobs(state.lastJobs);
-  deps.renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
-  deps.renderCrops(state.lastCrops);
+  applySectionSelection(galleryIds, selectedGalleryIds, shouldSelectAll);
+  applySectionSelection(cutoutIds, selectedCutoutIds, shouldSelectAll);
+  applySectionSelection(cropIds, selectedCropIds, shouldSelectAll);
+  renderJobs(state.lastJobs);
+  renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
+  renderCrops(state.lastCrops);
 }
 
 function setLoading(isLoading, label = 'Adicionando job na fila...') {
@@ -637,7 +663,7 @@ export function renderReferencePreview() {
     `;
     referencePreview.appendChild(card);
   });
-  deps.bindInteractiveActions();
+  bindInteractiveActions();
 }
 
 export function renderBranchPreview() {
@@ -691,12 +717,12 @@ export function selectBranchFromJob(jobId, keepPrompt) {
     jobId: job.id,
     imageUrl: job.result.imageUrl,
     filename: job.result.filename,
-    name: deps.buildDisplayPrompt(job),
+    name: buildDisplayPrompt(job),
   };
   state.selectedRegionReference = null;
   if (keepPrompt && promptInput) {
-    promptInput.value = deps.buildDisplayPrompt(job);
-    deps.hydratePromptOptions(job.promptOptions || {});
+    promptInput.value = buildDisplayPrompt(job);
+    hydratePromptOptions(job.promptOptions || {});
   }
   renderBranchPreview();
   renderRegionPreview();

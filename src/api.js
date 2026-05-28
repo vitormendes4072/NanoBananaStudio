@@ -12,6 +12,17 @@ import {
   productModelList,
   imageTemplateList,
 } from './dom.js';
+import { renderJobs, resetRenderedJobsKey } from './render-queue.js';
+import { renderFolderBoard } from './render-folders.js';
+import { renderUsage } from './render-usage.js';
+import { renderCutouts, renderCrops } from './render-media.js';
+import {
+  renderProductModelList,
+  renderPromptProductModelMentions,
+  renderImageTemplateList,
+  renderPromptImageTemplateMentions,
+} from './render-library.js';
+import { updatePromptAutocomplete } from './prompt.js';
 
 let lastRenderedCutoutsKey = '';
 let lastRenderedCropsKey = '';
@@ -21,8 +32,8 @@ export async function refreshJobs() {
     const response = await fetch('/api/jobs');
     const data = await response.json();
     if (!response.ok) return;
-    deps.renderJobs(data.jobs || []);
-    deps.renderFolderBoard();
+    renderJobs(data.jobs || []);
+    renderFolderBoard();
     if (data.concurrency) concurrencySelect.value = String(data.concurrency);
   } catch {
     queueSummary.textContent = 'Não foi possível atualizar a fila agora.';
@@ -34,7 +45,7 @@ export async function refreshUsage() {
     const response = await fetch('/api/usage');
     const data = await response.json();
     if (!response.ok) return;
-    deps.renderUsage(data);
+    renderUsage(data);
   } catch {
     usageSummary.textContent = 'Não foi possível carregar o uso estimado.';
   }
@@ -59,12 +70,12 @@ export async function refreshCutouts() {
     });
     if (nextCutoutsKey !== lastRenderedCutoutsKey) {
       lastRenderedCutoutsKey = nextCutoutsKey;
-      deps.renderCutouts(cutouts, data.processing);
+      renderCutouts(cutouts, data.processing);
     }
-    deps.renderFolderBoard();
+    renderFolderBoard();
     if (processingChanged) {
-      deps.resetRenderedJobsKey();
-      deps.renderJobs(state.lastJobs);
+      resetRenderedJobsKey();
+      renderJobs(state.lastJobs);
     }
   } catch {
     state.cutoutProcessingJobId = null;
@@ -87,9 +98,9 @@ export async function refreshCrops() {
     });
     if (nextCropsKey !== lastRenderedCropsKey) {
       lastRenderedCropsKey = nextCropsKey;
-      deps.renderCrops(crops);
+      renderCrops(crops);
     }
-    deps.renderFolderBoard();
+    renderFolderBoard();
   } catch {
     lastRenderedCropsKey = '';
     cropSummary.textContent = 'Não foi possível carregar os recortes agora.';
@@ -109,9 +120,9 @@ export async function refreshProductModels() {
     console.warn('[api] refreshProductModels falhou:', e);
     state.productModels = [];
   }
-  deps.renderProductModelList();
-  deps.renderPromptProductModelMentions();
-  deps.updatePromptAutocomplete();
+  renderProductModelList();
+  renderPromptProductModelMentions();
+  updatePromptAutocomplete();
 }
 
 export async function refreshImageTemplates() {
@@ -127,9 +138,9 @@ export async function refreshImageTemplates() {
     console.warn('[api] refreshImageTemplates falhou:', e);
     state.imageTemplates = [];
   }
-  deps.renderImageTemplateList();
-  deps.renderPromptImageTemplateMentions();
-  deps.updatePromptAutocomplete();
+  renderImageTemplateList();
+  renderPromptImageTemplateMentions();
+  updatePromptAutocomplete();
 }
 
 export function connectSSE() {

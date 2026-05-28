@@ -2,6 +2,19 @@ import deps from './deps.js';
 import { selectedCutoutIds, selectedCropIds } from './state.js';
 import { escapeHtml, formatDate } from './utils.js';
 import {
+  normalizeSectionFolderFilter,
+  matchesSelectedFolder,
+  thumbUrl,
+  buildSelectionControl,
+  buildExpandableText,
+  buildFolderBadge,
+  buildFolderIconButton,
+  buildDeleteIconButton,
+} from './render-queue.js';
+import { pruneSelectionSet, updateBulkSelectionUi } from './selection.js';
+import { renderFolderGroupedCollection } from './render-folders.js';
+import { bindInteractiveActions } from './events.js';
+import {
   cutoutGrid,
   cutoutSummary,
   cutoutFolderFilter,
@@ -12,15 +25,15 @@ import {
 } from './dom.js';
 
 export function renderCutouts(cutouts, processing) {
-  const selectedFolder = deps.normalizeSectionFolderFilter(cutoutFolderFilter.value);
+  const selectedFolder = normalizeSectionFolderFilter(cutoutFolderFilter.value);
   const visibleCutouts = cutouts.filter((item) =>
-    deps.matchesSelectedFolder(item.folder || '', selectedFolder)
+    matchesSelectedFolder(item.folder || '', selectedFolder)
   );
-  deps.pruneSelectionSet(
+  pruneSelectionSet(
     selectedCutoutIds,
     cutouts.map((item) => item.id)
   );
-  deps.updateBulkSelectionUi();
+  updateBulkSelectionUi();
 
   cutoutSummary.textContent = processing
     ? `Removendo fundo... ${visibleCutouts.length} de ${cutouts.length} recorte(s) visiveis.`
@@ -35,7 +48,7 @@ export function renderCutouts(cutouts, processing) {
   cutoutGrid.classList.remove('gallery-grid-grouped');
 
   if (viewModeSelect.value === 'folders') {
-    deps.renderFolderGroupedCollection(
+    renderFolderGroupedCollection(
       cutoutGrid,
       visibleCutouts.slice(0, 12),
       createCutoutCard,
@@ -45,7 +58,7 @@ export function renderCutouts(cutouts, processing) {
     for (const item of visibleCutouts.slice(0, 12)) cutoutGrid.appendChild(createCutoutCard(item));
   }
 
-  deps.bindInteractiveActions();
+  bindInteractiveActions();
 }
 
 function createCutoutCard(item) {
@@ -53,11 +66,11 @@ function createCutoutCard(item) {
   const titleId = `cutout-text-${item.id}-title`;
   card.className = 'gallery-card';
   card.innerHTML = `
-    ${deps.buildSelectionControl('cutout', item.id, selectedCutoutIds.has(item.id))}
-    <a href="${item.imageUrl}" target="_blank" rel="noreferrer"><img src="${deps.thumbUrl(item.imageUrl)}" alt="${escapeHtml(item.label || 'Recorte sem fundo')}"></a>
+    ${buildSelectionControl('cutout', item.id, selectedCutoutIds.has(item.id))}
+    <a href="${item.imageUrl}" target="_blank" rel="noreferrer"><img src="${thumbUrl(item.imageUrl)}" alt="${escapeHtml(item.label || 'Recorte sem fundo')}"></a>
     <div class="gallery-body">
-      <div class="gallery-copy-row">${deps.buildExpandableText({ id: titleId, text: item.label || 'Recorte sem fundo', className: 'gallery-title', lines: 4 })}</div>
-      ${deps.buildFolderBadge(item.folder)}
+      <div class="gallery-copy-row">${buildExpandableText({ id: titleId, text: item.label || 'Recorte sem fundo', className: 'gallery-title', lines: 4 })}</div>
+      ${buildFolderBadge(item.folder)}
       <p class="gallery-meta">PNG transparente - ${escapeHtml(formatDate(item.createdAt))}</p>
       <div class="queue-actions queue-actions-main">
         <button class="queue-button queue-button-primary" type="button" data-use-cutout-base="${item.id}">Editar imagem</button>
@@ -65,8 +78,8 @@ function createCutoutCard(item) {
       <div class="queue-actions queue-actions-footer">
         <a class="queue-link queue-link-utility" href="${item.imageUrl}" target="_blank" rel="noreferrer">Abrir</a>
         <a class="queue-link queue-link-utility" href="${item.imageUrl}" download="${item.filename}">Baixar</a>
-        ${deps.buildFolderIconButton('cutout', item.id, item.folder)}
-        ${deps.buildDeleteIconButton('cutout', item.id, 'Remover imagem')}
+        ${buildFolderIconButton('cutout', item.id, item.folder)}
+        ${buildDeleteIconButton('cutout', item.id, 'Remover imagem')}
       </div>
     </div>
   `;
@@ -74,15 +87,15 @@ function createCutoutCard(item) {
 }
 
 export function renderCrops(crops) {
-  const selectedFolder = deps.normalizeSectionFolderFilter(cropFolderFilter.value);
+  const selectedFolder = normalizeSectionFolderFilter(cropFolderFilter.value);
   const visibleCrops = crops.filter((item) =>
-    deps.matchesSelectedFolder(item.folder || '', selectedFolder)
+    matchesSelectedFolder(item.folder || '', selectedFolder)
   );
-  deps.pruneSelectionSet(
+  pruneSelectionSet(
     selectedCropIds,
     crops.map((item) => item.id)
   );
-  deps.updateBulkSelectionUi();
+  updateBulkSelectionUi();
 
   cropSummary.textContent = `${visibleCrops.length} de ${crops.length} recorte(s) visiveis.`;
 
@@ -95,7 +108,7 @@ export function renderCrops(crops) {
   cropGrid.classList.remove('gallery-grid-grouped');
 
   if (viewModeSelect.value === 'folders') {
-    deps.renderFolderGroupedCollection(
+    renderFolderGroupedCollection(
       cropGrid,
       visibleCrops.slice(0, 12),
       createCropCard,
@@ -105,7 +118,7 @@ export function renderCrops(crops) {
     for (const item of visibleCrops.slice(0, 12)) cropGrid.appendChild(createCropCard(item));
   }
 
-  deps.bindInteractiveActions();
+  bindInteractiveActions();
 }
 
 function createCropCard(item) {
@@ -113,11 +126,11 @@ function createCropCard(item) {
   const titleId = `crop-text-${item.id}-title`;
   card.className = 'gallery-card';
   card.innerHTML = `
-    ${deps.buildSelectionControl('crop', item.id, selectedCropIds.has(item.id))}
-    <a href="${item.imageUrl}" target="_blank" rel="noreferrer"><img src="${deps.thumbUrl(item.imageUrl)}" alt="${escapeHtml(item.label || 'Recorte')}"></a>
+    ${buildSelectionControl('crop', item.id, selectedCropIds.has(item.id))}
+    <a href="${item.imageUrl}" target="_blank" rel="noreferrer"><img src="${thumbUrl(item.imageUrl)}" alt="${escapeHtml(item.label || 'Recorte')}"></a>
     <div class="gallery-body">
-      <div class="gallery-copy-row">${deps.buildExpandableText({ id: titleId, text: item.label || 'Recorte', className: 'gallery-title', lines: 4 })}</div>
-      ${deps.buildFolderBadge(item.folder)}
+      <div class="gallery-copy-row">${buildExpandableText({ id: titleId, text: item.label || 'Recorte', className: 'gallery-title', lines: 4 })}</div>
+      ${buildFolderBadge(item.folder)}
       <p class="gallery-meta">PNG recortado - ${escapeHtml(formatDate(item.createdAt))}</p>
       <div class="queue-actions queue-actions-main">
         <button class="queue-button queue-button-primary" type="button" data-use-crop-base="${item.id}">Editar imagem</button>
@@ -125,8 +138,8 @@ function createCropCard(item) {
       <div class="queue-actions queue-actions-footer">
         <a class="queue-link queue-link-utility" href="${item.imageUrl}" target="_blank" rel="noreferrer">Abrir</a>
         <a class="queue-link queue-link-utility" href="${item.imageUrl}" download="${item.filename}">Baixar</a>
-        ${deps.buildFolderIconButton('crop', item.id, item.folder)}
-        ${deps.buildDeleteIconButton('crop', item.id, 'Remover imagem')}
+        ${buildFolderIconButton('crop', item.id, item.folder)}
+        ${buildDeleteIconButton('crop', item.id, 'Remover imagem')}
       </div>
     </div>
   `;

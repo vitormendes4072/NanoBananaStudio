@@ -2,6 +2,14 @@ import deps from './deps.js';
 import { state, REGION_HANDLE_SIZE } from './state.js';
 import { clamp } from './utils.js';
 import {
+  getActiveCreationFolder,
+  registerFolderName,
+  renderBranchPreview,
+  renderRegionPreview,
+} from './main.js';
+import { buildDisplayPrompt } from './render-queue.js';
+import { refreshCrops } from './api.js';
+import {
   statusBox,
   promptInput,
   regionEditor,
@@ -289,8 +297,8 @@ async function saveCropFromEditor(cropDataUrl) {
   }
   applyRegionSelectionButton.disabled = true;
   applyRegionSelectionButton.textContent = 'Salvando...';
-  const activeTargetFolder = deps.getActiveCreationFolder();
-  if (activeTargetFolder) deps.registerFolderName(activeTargetFolder);
+  const activeTargetFolder = getActiveCreationFolder();
+  if (activeTargetFolder) registerFolderName(activeTargetFolder);
   try {
     const response = await fetch('/api/crops', {
       method: 'POST',
@@ -298,7 +306,7 @@ async function saveCropFromEditor(cropDataUrl) {
       body: JSON.stringify({
         jobId: state.regionEditorState.job.id,
         sourceImageUrl: state.regionEditorState.job.result.imageUrl,
-        label: `${deps.buildDisplayPrompt(state.regionEditorState.job)} - recorte`,
+        label: `${buildDisplayPrompt(state.regionEditorState.job)} - recorte`,
         mimeType: 'image/png',
         data: cropDataUrl.split(',')[1] || '',
         folder: activeTargetFolder,
@@ -306,7 +314,7 @@ async function saveCropFromEditor(cropDataUrl) {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Falha ao salvar o recorte.');
-    await deps.refreshCrops();
+    await refreshCrops();
     regionEditor.close();
     statusBox.textContent = 'Recorte salvo com sucesso.';
   } catch (error) {
@@ -432,7 +440,7 @@ applyRegionSelectionButton.addEventListener('click', () => {
     jobId: state.regionEditorState.job.id,
     imageUrl: state.regionEditorState.job.result.imageUrl,
     filename: state.regionEditorState.job.result.filename,
-    name: deps.buildDisplayPrompt(state.regionEditorState.job),
+    name: buildDisplayPrompt(state.regionEditorState.job),
   };
   state.selectedRegionReference = {
     previewUrl: cropDataUrl,
@@ -442,8 +450,8 @@ applyRegionSelectionButton.addEventListener('click', () => {
       data: base64Data,
     },
   };
-  deps.renderBranchPreview();
-  deps.renderRegionPreview();
+  renderBranchPreview();
+  renderRegionPreview();
   regionEditor.close();
   statusBox.textContent = 'Imagem base e região selecionadas. Agora descreva a alteração desejada.';
   promptInput.focus();

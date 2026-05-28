@@ -7,6 +7,15 @@ import {
   slugifyProductModelAlias,
   slugifyImageTemplateAlias,
 } from './utils.js';
+import { bindInteractiveActions } from './events.js';
+import { buildPromptDetailsSummary, buildDisplayPrompt, thumbUrl } from './render-queue.js';
+import {
+  resolvePromptProductModels,
+  resolvePromptImageTemplates,
+  collectPromptOptions,
+} from './prompt.js';
+import { buildReferencePayload } from './main.js';
+import { refreshProductModels, refreshImageTemplates } from './api.js';
 import {
   promptInput,
   statusBox,
@@ -32,7 +41,7 @@ export function renderProductModelList() {
   if (!productModelList) return;
   if (!state.productModels.length) {
     productModelList.innerHTML = `<p class="reference-empty">Nenhum modelo de produto cadastrado ainda.</p>`;
-    deps.bindInteractiveActions();
+    bindInteractiveActions();
     return;
   }
 
@@ -76,7 +85,7 @@ export function renderProductModelList() {
       </article>`;
     })
     .join('');
-  deps.bindInteractiveActions();
+  bindInteractiveActions();
 }
 
 function renderProductModelEvaluation(evaluation) {
@@ -137,14 +146,14 @@ export function renderProductModelUploadPreview() {
       .addEventListener('load', () => URL.revokeObjectURL(imageUrl), { once: true });
     productModelUploadPreview.appendChild(card);
   }
-  deps.bindInteractiveActions();
+  bindInteractiveActions();
 }
 
 export function renderImageTemplateList() {
   if (!imageTemplateList) return;
   if (!state.imageTemplates.length) {
     imageTemplateList.innerHTML = `<p class="reference-empty">Nenhum template visual cadastrado ainda.</p>`;
-    deps.bindInteractiveActions();
+    bindInteractiveActions();
     return;
   }
 
@@ -172,7 +181,7 @@ export function renderImageTemplateList() {
           </button>
         </div>
         ${template.notes ? `<p class="product-model-card-notes">${escapeHtml(template.notes)}</p>` : ''}
-        <p class="product-model-card-notes">${escapeHtml(deps.buildPromptDetailsSummary(template.promptOptions) || 'Sem ajustes extras salvos.')}</p>
+        <p class="product-model-card-notes">${escapeHtml(buildPromptDetailsSummary(template.promptOptions) || 'Sem ajustes extras salvos.')}</p>
         ${thumbs ? `<div class="product-model-thumb-row">${thumbs}</div>` : ''}
         ${renderLibraryUsageHistory(usageHistory, 'template')}
         <div class="product-model-card-actions">
@@ -181,7 +190,7 @@ export function renderImageTemplateList() {
       </article>`;
     })
     .join('');
-  deps.bindInteractiveActions();
+  bindInteractiveActions();
 }
 
 export function renderImageTemplateUploadPreview() {
@@ -204,7 +213,7 @@ export function renderImageTemplateUploadPreview() {
       .addEventListener('load', () => URL.revokeObjectURL(imageUrl), { once: true });
     imageTemplateUploadPreview.appendChild(card);
   }
-  deps.bindInteractiveActions();
+  bindInteractiveActions();
 }
 
 function getLibraryUsageHistory(kind, alias) {
@@ -237,7 +246,7 @@ function getLibraryUsageHistory(kind, alias) {
     .slice()
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
     .slice(0, 2)
-    .map((job) => deps.buildDisplayPrompt(job))
+    .map((job) => buildDisplayPrompt(job))
     .filter(Boolean);
   return {
     total: matchingJobs.length,
@@ -262,8 +271,8 @@ function renderLibraryUsageHistory(history, label) {
           ? `<div class="library-usage-history-gallery">${history.recentResults
               .map(
                 (job) => `
-        <a class="library-usage-history-thumb" href="${job.result.imageUrl}" target="_blank" rel="noreferrer" title="${escapeHtml(deps.buildDisplayPrompt(job))}">
-          <img src="${deps.thumbUrl(job.result.imageUrl)}" alt="${escapeHtml(deps.buildDisplayPrompt(job))}">
+        <a class="library-usage-history-thumb" href="${job.result.imageUrl}" target="_blank" rel="noreferrer" title="${escapeHtml(buildDisplayPrompt(job))}">
+          <img src="${thumbUrl(job.result.imageUrl)}" alt="${escapeHtml(buildDisplayPrompt(job))}">
         </a>`
               )
               .join('')}</div>`
@@ -275,7 +284,7 @@ function renderLibraryUsageHistory(history, label) {
 
 export function renderPromptProductModelMentions() {
   if (!productModelMentions) return;
-  const resolution = deps.resolvePromptProductModels(promptInput?.value || '');
+  const resolution = resolvePromptProductModels(promptInput?.value || '');
   if (!resolution.matchedModels.length) {
     productModelMentions.innerHTML = `<p class="reference-empty">Use <code>@alias</code> no prompt para puxar um modelo de produto salvo.</p>`;
     return;
@@ -290,7 +299,7 @@ export function renderPromptProductModelMentions() {
 
 export function renderPromptImageTemplateMentions() {
   if (!imageTemplateMentions) return;
-  const resolution = deps.resolvePromptImageTemplates(promptInput?.value || '');
+  const resolution = resolvePromptImageTemplates(promptInput?.value || '');
   if (!resolution.matchedTemplates.length) {
     imageTemplateMentions.innerHTML = `<p class="reference-empty">Use <code>#alias</code> no prompt para puxar um template visual salvo.</p>`;
     return;
@@ -324,7 +333,7 @@ export async function saveProductModel() {
   saveProductModelButton.disabled = true;
   saveProductModelButton.textContent = 'Salvando...';
   try {
-    const referenceImages = await deps.buildReferencePayload(state.selectedProductModelFiles);
+    const referenceImages = await buildReferencePayload(state.selectedProductModelFiles);
     const response = await fetch('/api/product-models', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -338,7 +347,7 @@ export async function saveProductModel() {
     state.selectedProductModelFiles = [];
     syncProductModelInputFiles();
     renderProductModelUploadPreview();
-    await deps.refreshProductModels();
+    await refreshProductModels();
     insertProductModelMention(data.productModel.alias, { appendSpace: false });
     statusBox.textContent = `Modelo @${data.productModel.alias} salvo. Agora basta citar @${data.productModel.alias} no prompt.`;
   } catch (error) {
@@ -367,7 +376,7 @@ export async function saveImageTemplate() {
   saveImageTemplateButton.disabled = true;
   saveImageTemplateButton.textContent = 'Salvando...';
   try {
-    const referenceImages = await deps.buildReferencePayload(state.selectedImageTemplateFiles);
+    const referenceImages = await buildReferencePayload(state.selectedImageTemplateFiles);
     const response = await fetch('/api/image-templates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -375,7 +384,7 @@ export async function saveImageTemplate() {
         name,
         alias,
         notes,
-        promptOptions: deps.collectPromptOptions(),
+        promptOptions: collectPromptOptions(),
         referenceImages,
       }),
     });
@@ -387,7 +396,7 @@ export async function saveImageTemplate() {
     state.selectedImageTemplateFiles = [];
     syncImageTemplateInputFiles();
     renderImageTemplateUploadPreview();
-    await deps.refreshImageTemplates();
+    await refreshImageTemplates();
     insertImageTemplateMention(data.imageTemplate.alias, { appendSpace: false });
     statusBox.textContent = `Template #${data.imageTemplate.alias} salvo. Agora basta citar #${data.imageTemplate.alias} no prompt.`;
   } catch (error) {

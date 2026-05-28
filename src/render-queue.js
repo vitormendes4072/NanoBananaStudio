@@ -1,6 +1,10 @@
 import deps from './deps.js';
 import { state, MODEL_INFO, selectedGalleryIds } from './state.js';
 import { escapeHtml, formatDate, buildVersionLabel } from './utils.js';
+import { pruneSelectionSet, updateBulkSelectionUi } from './selection.js';
+import { renderFolderGroupedCollection, renderFolderBoard } from './render-folders.js';
+import { renderProductModelList, renderImageTemplateList } from './render-library.js';
+import { bindInteractiveActions } from './events.js';
 import {
   searchInput,
   queueFilter,
@@ -331,11 +335,11 @@ function updateStatusFromVisibleResults(filteredGalleryJobs) {
 }
 
 export function renderGallery(completedJobs, allJobs = [], allCompletedJobs = []) {
-  deps.pruneSelectionSet(
+  pruneSelectionSet(
     selectedGalleryIds,
     completedJobs.map((job) => job.id)
   );
-  deps.updateBulkSelectionUi();
+  updateBulkSelectionUi();
 
   if (!completedJobs.length) {
     gallerySummary.textContent = '0 imagens visiveis';
@@ -361,7 +365,7 @@ export function renderGallery(completedJobs, allJobs = [], allCompletedJobs = []
   galleryGrid.classList.remove('gallery-grid-grouped');
 
   if (viewModeSelect.value === 'folders') {
-    deps.renderFolderGroupedCollection(
+    renderFolderGroupedCollection(
       galleryGrid,
       completedJobs.slice(0, 12),
       createGalleryCard,
@@ -374,8 +378,8 @@ export function renderGallery(completedJobs, allJobs = [], allCompletedJobs = []
 
 export function renderJobs(jobs) {
   state.lastJobs = jobs;
-  deps.renderProductModelList();
-  deps.renderImageTemplateList();
+  renderProductModelList();
+  renderImageTemplateList();
 
   const filterState = JSON.stringify({
     search: searchInput.value.trim().toLowerCase(),
@@ -434,8 +438,8 @@ export function renderJobs(jobs) {
 
   renderGallery(filteredGalleryJobs, jobs, allCompletedJobs);
   updateStatusFromVisibleResults(filteredGalleryJobs);
-  deps.renderFolderBoard();
-  deps.bindInteractiveActions();
+  renderFolderBoard();
+  bindInteractiveActions();
 }
 
 // Register on deps
