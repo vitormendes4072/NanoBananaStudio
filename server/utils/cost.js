@@ -303,8 +303,10 @@ export async function evaluateProductModelWithGemini(productModel) {
   });
 }
 
-export function buildAnalytics(db) {
-  const PERIOD_DAYS = 30;
+/** @param {import('better-sqlite3').Database} db @param {number|null} periodDays null = all time */
+export function buildAnalytics(db, periodDays = 30) {
+  const dateFilter =
+    periodDays != null ? `AND finished_at >= date('now', '-${periodDays} days')` : '';
 
   const dailyRows = db
     .prepare(
@@ -313,7 +315,7 @@ export function buildAnalytics(db) {
     FROM jobs
     WHERE status = 'completed'
       AND finished_at IS NOT NULL
-      AND finished_at >= date('now', '-${PERIOD_DAYS} days')
+      ${dateFilter}
     GROUP BY date, model
     ORDER BY date
   `
@@ -327,6 +329,7 @@ export function buildAnalytics(db) {
     FROM jobs
     WHERE status = 'completed'
       AND model IS NOT NULL
+      ${dateFilter}
     GROUP BY model
     ORDER BY count DESC
   `
@@ -355,12 +358,12 @@ export function buildAnalytics(db) {
     };
   });
 
-  const periodCost = byModel.reduce((s, m) => s + m.cost, 0);
-  const periodCount = byModel.reduce((s, m) => s + m.count, 0);
+  const periodCost = dailyCosts.reduce((s, d) => s + d.cost, 0);
+  const periodCount = dailyCosts.reduce((s, d) => s + d.count, 0);
 
   return {
     ok: true,
-    periodDays: PERIOD_DAYS,
+    periodDays: periodDays ?? null,
     periodCost,
     periodCount,
     dailyCosts,

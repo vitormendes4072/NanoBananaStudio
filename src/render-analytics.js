@@ -1,5 +1,5 @@
 import { escapeHtml } from './utils.js';
-import { analyticsSummary, analyticsCharts } from './dom.js';
+import { analyticsSummary, analyticsCharts, analyticsPeriodSelect } from './dom.js';
 
 function formatMoney(value, currency) {
   return new Intl.NumberFormat('pt-BR', {
@@ -10,9 +10,15 @@ function formatMoney(value, currency) {
   }).format(value || 0);
 }
 
+function periodLabel(periodDays) {
+  if (periodDays == null) return 'todos os registros';
+  return `últimos ${periodDays} dias`;
+}
+
 export async function refreshAnalytics() {
+  const days = analyticsPeriodSelect ? Number(analyticsPeriodSelect.value) : 30;
   try {
-    const response = await fetch('/api/analytics');
+    const response = await fetch(`/api/analytics?days=${days}`);
     const data = await response.json();
     if (!response.ok) return;
     renderAnalytics(data);
@@ -21,21 +27,24 @@ export async function refreshAnalytics() {
   }
 }
 
+analyticsPeriodSelect?.addEventListener('change', () => refreshAnalytics());
+
 function renderAnalytics(data) {
   if (!analyticsCharts) return;
+  const label = periodLabel(data.periodDays);
   if (analyticsSummary) {
-    analyticsSummary.textContent = `${data.periodCount} imagem(ns) em ${data.periodDays} dias`;
+    analyticsSummary.textContent = `${data.periodCount} imagem(ns) — ${label}`;
     if (data.periodCost > 0) {
       analyticsSummary.textContent += ` — ${formatMoney(data.periodCost, 'USD')} estimado`;
     }
   }
   analyticsCharts.innerHTML = `
     <div class="analytics-chart-block">
-      <h3 class="analytics-chart-title">Imagens por dia <span class="analytics-chart-subtitle">(últimos ${data.periodDays} dias)</span></h3>
+      <h3 class="analytics-chart-title">Imagens por dia <span class="analytics-chart-subtitle">(${escapeHtml(label)})</span></h3>
       ${renderDailyCostChart(data.dailyCosts)}
     </div>
     <div class="analytics-chart-block">
-      <h3 class="analytics-chart-title">Jobs por modelo</h3>
+      <h3 class="analytics-chart-title">Jobs por modelo <span class="analytics-chart-subtitle">(${escapeHtml(label)})</span></h3>
       ${renderByModelChart(data.byModel)}
     </div>
   `;

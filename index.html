@@ -58,6 +58,16 @@
         <div class="section-head">
           <h2>Analytics</h2>
           <div class="section-head-actions">
+            <select
+              id="analytics-period"
+              class="filter-select analytics-period-select"
+              aria-label="Período de analytics"
+            >
+              <option value="7">7 dias</option>
+              <option value="30" selected>30 dias</option>
+              <option value="90">90 dias</option>
+              <option value="0">Tudo</option>
+            </select>
             <p id="analytics-summary" class="queue-summary">Carregando...</p>
             <button
               class="panel-expand-button section-collapse-button"

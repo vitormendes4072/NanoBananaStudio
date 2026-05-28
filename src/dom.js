@@ -106,3 +106,4 @@ export const folderDialogCancelButton = document.querySelector('#folder-dialog-c
 export const folderDialogConfirmButton = document.querySelector('#folder-dialog-confirm');
 export const analyticsSummary = document.querySelector('#analytics-summary');
 export const analyticsCharts = document.querySelector('#analytics-charts');
+export const analyticsPeriodSelect = document.querySelector('#analytics-period');
