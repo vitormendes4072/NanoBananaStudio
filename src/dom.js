@@ -107,3 +107,4 @@ export const folderDialogConfirmButton = document.querySelector('#folder-dialog-
 export const analyticsSummary = document.querySelector('#analytics-summary');
 export const analyticsCharts = document.querySelector('#analytics-charts');
 export const analyticsPeriodSelect = document.querySelector('#analytics-period');
+export const costEstimate = document.querySelector('#cost-estimate');

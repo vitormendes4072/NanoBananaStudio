@@ -16,6 +16,7 @@ export const state = {
   customFolders: [],
   customPromptPresets: [],
   limits: { jobs: 200, cutouts: 100, crops: 100 },
+  pricing: { models: {}, currency: 'USD', updatedAt: null },
 };
 
 export const MODEL_INFO = {
