@@ -57,8 +57,8 @@ export function createJob({
 }
 
 export async function processQueue() {
+  const jobs = state.jobs;
   while (state.activeJobIds.size < state.concurrency) {
-    const jobs = state.jobs;
     const nextJob = jobs.find((job) => job.status === 'queued');
     if (!nextJob) {
       return;
