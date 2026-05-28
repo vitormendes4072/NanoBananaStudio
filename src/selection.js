@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { state, selectedGalleryIds, selectedCutoutIds, selectedCropIds } from './state.js';
 import { showToast } from './utils.js';
 import {
@@ -224,14 +223,3 @@ export async function exportSelectedItems(payload, emptyMessage) {
     showToast(e instanceof Error ? e.message : 'Falha ao exportar arquivos.', 'error');
   }
 }
-
-deps.exportSelectedItems = exportSelectedItems;
-deps.updateBulkSelectionUi = updateBulkSelectionUi;
-deps.pruneSelectionSet = pruneSelectionSet;
-deps.applySectionSelection = applySectionSelection;
-deps.toggleSectionSelection = toggleSectionSelection;
-deps.downloadSelectedItems = downloadSelectedItems;
-deps.getSelectedMediaItems = getSelectedMediaItems;
-deps.getSharedSelectedFolder = getSharedSelectedFolder;
-deps.countSelectedFromPayload = countSelectedFromPayload;
-deps.clearSelectionsFromPayload = clearSelectionsFromPayload;

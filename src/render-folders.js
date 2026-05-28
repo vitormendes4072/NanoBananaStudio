@@ -1,6 +1,7 @@
-import deps from './deps.js';
 import { state } from './state.js';
-import { escapeHtml } from './utils.js';
+import { escapeHtml, normalizeFolderValue } from './utils.js';
+import { displayFolderName, renderJobs } from './render-queue.js';
+import { renderCutouts, renderCrops } from './render-media.js';
 import {
   galleryFolderFilter,
   cutoutFolderFilter,
@@ -39,7 +40,7 @@ export function populateSectionFolderFilters() {
 }
 
 export function applyFolderToSectionFilters(folderValue) {
-  const normalizedValue = folderValue === '' ? '' : deps.normalizeFolderValue(folderValue) || 'all';
+  const normalizedValue = folderValue === '' ? '' : normalizeFolderValue(folderValue) || 'all';
   for (const select of [galleryFolderFilter, cutoutFolderFilter, cropFolderFilter]) {
     if (!select) continue;
     const optionExists = Array.from(select.options).some((o) => o.value === normalizedValue);
@@ -86,7 +87,7 @@ export function renderFolderGroupedCollection(container, items, cardFactory, emp
 function groupItemsByFolder(items) {
   const grouped = new Map();
   for (const item of items) {
-    const key = deps.displayFolderName(item?.result?.folder || item?.folder || '');
+    const key = displayFolderName(item?.result?.folder || item?.folder || '');
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key).push(item);
   }
@@ -112,7 +113,7 @@ export function renderFolderBoard() {
   for (const folder of getExistingFolderNames())
     grouped.set(folder, { total: 0, gallery: 0, cutouts: 0, crops: 0 });
   for (const entry of entries) {
-    const key = deps.displayFolderName(entry.folder);
+    const key = displayFolderName(entry.folder);
     if (!grouped.has(key)) grouped.set(key, { total: 0, gallery: 0, cutouts: 0, crops: 0 });
     const bucket = grouped.get(key);
     bucket.total += 1;
@@ -147,16 +148,10 @@ export function renderFolderBoard() {
       const value = button.getAttribute('data-folder-filter') || '';
       folderFilterInput.value = value;
       applyFolderToSectionFilters(value);
-      deps.renderJobs(state.lastJobs);
-      deps.renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
-      deps.renderCrops(state.lastCrops);
+      renderJobs(state.lastJobs);
+      renderCutouts(state.lastCutouts, Boolean(state.cutoutProcessingJobId));
+      renderCrops(state.lastCrops);
       renderFolderBoard();
     };
   }
 }
-
-deps.renderFolderBoard = renderFolderBoard;
-deps.renderFolderGroupedCollection = renderFolderGroupedCollection;
-deps.renderFolderDialogOptions = renderFolderDialogOptions;
-deps.getExistingFolderNames = getExistingFolderNames;
-deps.applyFolderToSectionFilters = applyFolderToSectionFilters;
