@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { state, PROMPT_PRESETS } from './state.js';
 import { escapeHtml, slugifyProductModelAlias, slugifyImageTemplateAlias } from './utils.js';
 import { buildPromptDetailsSummary, humanizePromptFocus } from './render-queue.js';
@@ -393,15 +392,3 @@ export function saveCurrentPromptPreset() {
   renderCustomPromptPresets();
   if (customPresetNameInput) customPresetNameInput.value = '';
 }
-
-deps.collectPromptOptions = collectPromptOptions;
-deps.hydratePromptOptions = hydratePromptOptions;
-deps.resolvePromptProductModels = resolvePromptProductModels;
-deps.resolvePromptImageTemplates = resolvePromptImageTemplates;
-deps.buildLocalizedPrompt = buildLocalizedPrompt;
-deps.updatePromptAutocomplete = updatePromptAutocomplete;
-deps.hidePromptAutocomplete = hidePromptAutocomplete;
-deps.handlePromptAutocompleteKeydown = handlePromptAutocompleteKeydown;
-deps.applyPromptPreset = applyPromptPreset;
-deps.renderCustomPromptPresets = renderCustomPromptPresets;
-deps.saveCurrentPromptPreset = saveCurrentPromptPreset;

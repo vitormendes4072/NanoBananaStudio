@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { displayFolderName } from './render-queue.js';
 import { renderFolderDialogOptions } from './render-folders.js';
 import {
@@ -133,6 +132,3 @@ export function requestFolderSelection({
     folderDialogInput.focus();
   });
 }
-
-deps.requestConfirmation = requestConfirmation;
-deps.requestFolderSelection = requestFolderSelection;

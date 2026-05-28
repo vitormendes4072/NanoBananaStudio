@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { selectedCutoutIds, selectedCropIds } from './state.js';
 import { escapeHtml, formatDate } from './utils.js';
 import {
@@ -145,6 +144,3 @@ function createCropCard(item) {
   `;
   return card;
 }
-
-deps.renderCutouts = renderCutouts;
-deps.renderCrops = renderCrops;

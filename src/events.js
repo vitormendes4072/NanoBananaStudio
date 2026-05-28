@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { state, selectedGalleryIds, selectedCutoutIds, selectedCropIds } from './state.js';
 import { showToast, fileToBase64, base64ToFile } from './utils.js';
 import { statusBox, referencePreview, promptInput, organizeSelectedButton } from './dom.js';
@@ -634,8 +633,3 @@ export async function handleSingleFolderAssignment(kind, id, folderValue) {
   await refreshCutouts();
   await refreshCrops();
 }
-
-deps.bindInteractiveActions = bindInteractiveActions;
-deps.handleBulkRemoval = handleBulkRemoval;
-deps.handleFolderAssignment = handleFolderAssignment;
-deps.handleSingleFolderAssignment = handleSingleFolderAssignment;

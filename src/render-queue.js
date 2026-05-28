@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { state, MODEL_INFO, selectedGalleryIds } from './state.js';
 import { escapeHtml, formatDate, buildVersionLabel } from './utils.js';
 import { pruneSelectionSet, updateBulkSelectionUi } from './selection.js';
@@ -441,22 +440,3 @@ export function renderJobs(jobs) {
   renderFolderBoard();
   bindInteractiveActions();
 }
-
-// Register on deps
-deps.renderJobs = renderJobs;
-deps.renderGallery = renderGallery;
-deps.thumbUrl = thumbUrl;
-deps.buildDisplayPrompt = buildDisplayPrompt;
-deps.buildPromptDetailsSummary = buildPromptDetailsSummary;
-deps.modelLabel = modelLabel;
-deps.displayFolderName = displayFolderName;
-deps.buildSelectionControl = buildSelectionControl;
-deps.buildExpandableText = buildExpandableText;
-deps.buildFolderBadge = buildFolderBadge;
-deps.buildDeleteIconButton = buildDeleteIconButton;
-deps.buildFolderIconButton = buildFolderIconButton;
-deps.resetRenderedJobsKey = resetRenderedJobsKey;
-deps.filterGalleryJobs = filterGalleryJobs;
-deps.filterQueueJobs = filterQueueJobs;
-deps.normalizeSectionFolderFilter = normalizeSectionFolderFilter;
-deps.matchesSelectedFolder = matchesSelectedFolder;

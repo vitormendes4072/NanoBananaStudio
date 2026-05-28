@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { state } from './state.js';
 import { escapeHtml, normalizeFolderValue } from './utils.js';
 import { displayFolderName, renderJobs } from './render-queue.js';
@@ -156,9 +155,3 @@ export function renderFolderBoard() {
     };
   }
 }
-
-deps.renderFolderBoard = renderFolderBoard;
-deps.renderFolderGroupedCollection = renderFolderGroupedCollection;
-deps.renderFolderDialogOptions = renderFolderDialogOptions;
-deps.getExistingFolderNames = getExistingFolderNames;
-deps.applyFolderToSectionFilters = applyFolderToSectionFilters;

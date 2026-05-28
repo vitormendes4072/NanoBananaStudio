@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { state } from './state.js';
 import {
   escapeHtml,
@@ -445,17 +444,3 @@ export function syncImageTemplateInputFiles() {
   for (const file of state.selectedImageTemplateFiles) dt.items.add(file);
   imageTemplateImagesInput.files = dt.files;
 }
-
-deps.renderProductModelList = renderProductModelList;
-deps.renderImageTemplateList = renderImageTemplateList;
-deps.renderProductModelUploadPreview = renderProductModelUploadPreview;
-deps.renderImageTemplateUploadPreview = renderImageTemplateUploadPreview;
-deps.renderPromptProductModelMentions = renderPromptProductModelMentions;
-deps.renderPromptImageTemplateMentions = renderPromptImageTemplateMentions;
-deps.saveProductModel = saveProductModel;
-deps.saveImageTemplate = saveImageTemplate;
-deps.insertProductModelMention = insertProductModelMention;
-deps.insertImageTemplateMention = insertImageTemplateMention;
-deps.syncProductModelInputFiles = syncProductModelInputFiles;
-deps.syncImageTemplateInputFiles = syncImageTemplateInputFiles;
-deps.getProductModelEvaluationStatusLabel = getProductModelEvaluationStatusLabel;

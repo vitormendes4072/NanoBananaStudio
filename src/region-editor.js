@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { state, REGION_HANDLE_SIZE } from './state.js';
 import { clamp } from './utils.js';
 import {
@@ -456,5 +455,3 @@ applyRegionSelectionButton.addEventListener('click', () => {
   statusBox.textContent = 'Imagem base e região selecionadas. Agora descreva a alteração desejada.';
   promptInput.focus();
 });
-
-deps.openRegionEditor = openRegionEditor;

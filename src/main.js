@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import {
   state,
   MAX_REFERENCE_IMAGES,
@@ -124,23 +123,9 @@ function bootstrap() {
     CUSTOM_PRESETS_STORAGE_KEY
   );
 
-  registerBootstrapDeps();
   bindStaticEvents();
   renderInitialState();
   refreshInitialData();
-}
-
-function registerBootstrapDeps() {
-  deps.normalizeFolderValue = normalizeFolderValue;
-  deps.getActiveCreationFolder = getActiveCreationFolder;
-  deps.registerFolderName = registerFolderName;
-  deps.buildReferencePayload = buildReferencePayload;
-  deps.syncReferenceInputFiles = syncReferenceInputFiles;
-  deps.renderReferencePreview = renderReferencePreview;
-  deps.renderBranchPreview = renderBranchPreview;
-  deps.renderRegionPreview = renderRegionPreview;
-  deps.selectBranchFromJob = selectBranchFromJob;
-  deps.organizeSelectedButton = organizeSelectedButton;
 }
 
 function bindStaticEvents() {

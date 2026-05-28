@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { state } from './state.js';
 import { showToast } from './utils.js';
 import {
@@ -182,11 +181,3 @@ export function connectSSE() {
     // EventSource reconnects automatically via the retry interval set by the server
   };
 }
-
-deps.refreshJobs = refreshJobs;
-deps.refreshUsage = refreshUsage;
-deps.refreshCutouts = refreshCutouts;
-deps.refreshCrops = refreshCrops;
-deps.refreshProductModels = refreshProductModels;
-deps.refreshImageTemplates = refreshImageTemplates;
-deps.connectSSE = connectSSE;
