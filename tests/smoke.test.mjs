@@ -744,6 +744,54 @@ async function main() {
       }
     });
 
+    await runTest(
+      results,
+      'POST /api/jobs com compareModels cria um job por modelo permitido',
+      async () => {
+        // compareModels=true ignora body.model/quantity e cria 1 job por allowedModel
+        // todos compartilhando o mesmo comparisonId.
+        const { allowedModels } = await import('../server/config.js');
+        process.env.GEMINI_API_KEY = 'fake-key-smoke-test';
+        try {
+          const response = await fetchJson('/api/jobs', {
+            method: 'POST',
+            body: JSON.stringify({
+              prompt: 'smoke compare models lado a lado',
+              compareModels: true,
+              // model e quantity devem ser ignorados quando compareModels=true
+              model: 'modelo-que-nao-existe',
+              quantity: 5,
+            }),
+          });
+          assert.equal(response.status, 202);
+          assert.equal(response.body.quantity, allowedModels.length);
+          assert.equal(response.body.jobs.length, allowedModels.length);
+
+          const jobs = response.body.jobs;
+          const comparisonIds = new Set(jobs.map((j) => j.comparisonId));
+          assert.equal(comparisonIds.size, 1, 'todos os jobs devem ter o mesmo comparisonId');
+          const [comparisonId] = comparisonIds;
+          assert.ok(
+            typeof comparisonId === 'string' && comparisonId.startsWith('cmp_'),
+            `comparisonId deve começar com cmp_ (recebido: ${comparisonId})`
+          );
+
+          const models = new Set(jobs.map((j) => j.model));
+          assert.equal(models.size, allowedModels.length, 'cada job deve ter modelo diferente');
+          for (const modelId of allowedModels) {
+            assert.ok(models.has(modelId), `esperava job para ${modelId}`);
+          }
+
+          // batchId deve ser null em comparações
+          for (const job of jobs) {
+            assert.equal(job.batchId, null);
+          }
+        } finally {
+          process.env.GEMINI_API_KEY = '';
+        }
+      }
+    );
+
     await runTest(results, 'referencia com dados corrompidos retorna 400', async () => {
       // '====' é base64 válido mas decodifica para buffer vazio (0 bytes).
       // normalizeReferenceImages lança badRequestError ao detectar buffer vazio.

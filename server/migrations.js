@@ -140,8 +140,30 @@ function migration_v2(db) {
   })();
 }
 
+function migration_v3(db) {
+  db.transaction(() => {
+    addColumnIfMissing(db, 'jobs', 'comparison_id', 'TEXT');
+
+    // Backfill from JSON blob (will be null for jobs created before this feature)
+    db.prepare(
+      `
+      UPDATE jobs SET
+        comparison_id = json_extract(data, '$.comparisonId')
+      WHERE comparison_id IS NULL
+    `
+    ).run();
+
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_jobs_comparison_id ON jobs(comparison_id);
+    `);
+
+    setVersion(db, 3);
+  })();
+}
+
 export function runMigrations(db) {
   const version = getVersion(db);
   if (version < 1) migration_v1(db);
   if (version < 2) migration_v2(db);
+  if (version < 3) migration_v3(db);
 }

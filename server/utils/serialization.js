@@ -163,6 +163,7 @@ export function serializeJob(job) {
     batchId: job.batchId,
     batchIndex: job.batchIndex,
     batchTotal: job.batchTotal,
+    comparisonId: job.comparisonId ?? null,
     status: job.status,
     createdAt: job.createdAt,
     startedAt: job.startedAt,

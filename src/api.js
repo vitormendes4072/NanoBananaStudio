@@ -13,6 +13,7 @@ import {
 } from './dom.js';
 import { renderJobs, resetRenderedJobsKey } from './render-queue.js';
 import { renderFolderBoard } from './render-folders.js';
+import { renderComparisons } from './render-comparison.js';
 import { renderUsage } from './render-usage.js';
 import { renderCutouts, renderCrops } from './render-media.js';
 import {
@@ -61,6 +62,7 @@ export async function refreshJobs() {
     if (!response.ok) return;
     renderJobs(data.jobs || []);
     renderFolderBoard();
+    renderComparisons();
     if (data.concurrency) concurrencySelect.value = String(data.concurrency);
   } catch {
     queueSummary.textContent = 'Não foi possível atualizar a fila agora.';

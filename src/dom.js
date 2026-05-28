@@ -108,3 +108,7 @@ export const analyticsSummary = document.querySelector('#analytics-summary');
 export const analyticsCharts = document.querySelector('#analytics-charts');
 export const analyticsPeriodSelect = document.querySelector('#analytics-period');
 export const costEstimate = document.querySelector('#cost-estimate');
+export const compareModelsToggle = document.querySelector('#compare-models');
+export const comparisonPanel = document.querySelector('[data-collapsible-section="comparison"]');
+export const comparisonSummary = document.querySelector('#comparison-summary');
+export const comparisonList = document.querySelector('#comparison-list');
