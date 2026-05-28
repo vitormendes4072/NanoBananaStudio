@@ -26,6 +26,19 @@ import { updatePromptAutocomplete } from './prompt.js';
 let lastRenderedCutoutsKey = '';
 let lastRenderedCropsKey = '';
 
+export async function refreshHealth() {
+  try {
+    const response = await fetch('/api/health');
+    const data = await response.json();
+    if (!response.ok) return;
+    if (data.limits && typeof data.limits === 'object') {
+      state.limits = { ...state.limits, ...data.limits };
+    }
+  } catch {
+    // non-critical — keeps default limits from state.js
+  }
+}
+
 export async function refreshJobs() {
   try {
     const response = await fetch('/api/jobs');

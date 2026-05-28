@@ -2771,6 +2771,17 @@ button:disabled {
   text-align: center;
 }
 
+/* ── Limit indicators ─────────────────────────────────────────── */
+
+.limit-warning {
+  color: #d97706;
+}
+
+.limit-critical {
+  color: var(--danger);
+  font-weight: 600;
+}
+
 /* ── Dark mode ────────────────────────────────────────────────── */
 
 @media (prefers-color-scheme: dark) {

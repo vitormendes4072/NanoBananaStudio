@@ -15,6 +15,9 @@ import {
   legacyUploadsDir,
   thumbsDir,
   defaultModel,
+  maxJobs,
+  maxCutouts,
+  maxCrops,
 } from '../config.js';
 import { normalizeConcurrency } from '../utils.js';
 
@@ -44,6 +47,7 @@ router.get('/api/health', (req, res) => {
     activeJobIds: Array.from(state.activeJobIds),
     queueSize: state.jobs.filter((job) => job.status === 'queued').length,
     concurrency: state.concurrency,
+    limits: { jobs: maxJobs, cutouts: maxCutouts, crops: maxCrops },
   });
 });
 
