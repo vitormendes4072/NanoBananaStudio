@@ -333,6 +333,20 @@ function updateStatusFromVisibleResults(filteredGalleryJobs) {
   if (!submitButton.disabled) statusBox.textContent = 'Pronto para enfileirar.';
 }
 
+export function buildLimitSummary(count, limit) {
+  if (!limit || limit <= 0) return { text: '', level: 'normal' };
+  const ratio = count / limit;
+  if (ratio >= 0.95) return { text: ` — ⚠ ${count}/${limit} armazenadas`, level: 'critical' };
+  if (ratio >= 0.8) return { text: ` — ⚠ ${count}/${limit} armazenadas`, level: 'warning' };
+  return { text: ` — ${count}/${limit} armazenadas`, level: 'normal' };
+}
+
+export function applyLimitClass(element, level) {
+  element.classList.remove('limit-warning', 'limit-critical');
+  if (level === 'warning') element.classList.add('limit-warning');
+  else if (level === 'critical') element.classList.add('limit-critical');
+}
+
 export function renderGallery(completedJobs, allJobs = [], allCompletedJobs = []) {
   pruneSelectionSet(
     selectedGalleryIds,
@@ -342,6 +356,7 @@ export function renderGallery(completedJobs, allJobs = [], allCompletedJobs = []
 
   if (!completedJobs.length) {
     gallerySummary.textContent = '0 imagens visiveis';
+    applyLimitClass(gallerySummary, 'normal');
     if (allJobs.length === 0) {
       galleryGrid.innerHTML = `
         <div class="gallery-onboarding">
@@ -359,7 +374,9 @@ export function renderGallery(completedJobs, allJobs = [], allCompletedJobs = []
     return;
   }
 
-  gallerySummary.textContent = `${Math.min(completedJobs.length, 12)} de ${completedJobs.length} imagens visiveis`;
+  const jobLimit = buildLimitSummary(allCompletedJobs.length, state.limits?.jobs);
+  gallerySummary.textContent = `${Math.min(completedJobs.length, 12)} de ${completedJobs.length} imagens visiveis${jobLimit.text}`;
+  applyLimitClass(gallerySummary, jobLimit.level);
   galleryGrid.innerHTML = '';
   galleryGrid.classList.remove('gallery-grid-grouped');
 

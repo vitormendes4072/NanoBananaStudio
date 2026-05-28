@@ -1,4 +1,4 @@
-import { selectedCutoutIds, selectedCropIds } from './state.js';
+import { state, selectedCutoutIds, selectedCropIds } from './state.js';
 import { escapeHtml, formatDate } from './utils.js';
 import {
   normalizeSectionFolderFilter,
@@ -9,6 +9,8 @@ import {
   buildFolderBadge,
   buildFolderIconButton,
   buildDeleteIconButton,
+  buildLimitSummary,
+  applyLimitClass,
 } from './render-queue.js';
 import { pruneSelectionSet, updateBulkSelectionUi } from './selection.js';
 import { renderFolderGroupedCollection } from './render-folders.js';
@@ -34,9 +36,11 @@ export function renderCutouts(cutouts, processing) {
   );
   updateBulkSelectionUi();
 
+  const cutoutLimit = buildLimitSummary(cutouts.length, state.limits?.cutouts);
   cutoutSummary.textContent = processing
-    ? `Removendo fundo... ${visibleCutouts.length} de ${cutouts.length} recorte(s) visiveis.`
-    : `${visibleCutouts.length} de ${cutouts.length} recorte(s) visiveis.`;
+    ? `Removendo fundo... ${visibleCutouts.length} de ${cutouts.length} recorte(s) visiveis${cutoutLimit.text}`
+    : `${visibleCutouts.length} de ${cutouts.length} recorte(s) visiveis${cutoutLimit.text}`;
+  applyLimitClass(cutoutSummary, cutoutLimit.level);
 
   if (!visibleCutouts.length) {
     cutoutGrid.innerHTML = `<p class="empty-state">Use o botão "Remover fundo" nas imagens da galeria para criar PNGs transparentes aqui.</p>`;
@@ -96,7 +100,9 @@ export function renderCrops(crops) {
   );
   updateBulkSelectionUi();
 
-  cropSummary.textContent = `${visibleCrops.length} de ${crops.length} recorte(s) visiveis.`;
+  const cropLimit = buildLimitSummary(crops.length, state.limits?.crops);
+  cropSummary.textContent = `${visibleCrops.length} de ${crops.length} recorte(s) visiveis${cropLimit.text}`;
+  applyLimitClass(cropSummary, cropLimit.level);
 
   if (!visibleCrops.length) {
     cropGrid.innerHTML = `<p class="empty-state">Use o botão "Recortar" nas imagens da galeria para salvar recortes aqui.</p>`;
