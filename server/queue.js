@@ -29,6 +29,7 @@ export function createJob({
   batchId = null,
   batchIndex = null,
   batchTotal = null,
+  comparisonId = null,
 }) {
   const job = {
     id: buildJobId(),
@@ -43,6 +44,7 @@ export function createJob({
     batchId,
     batchIndex,
     batchTotal,
+    comparisonId,
     status: 'queued',
     createdAt: new Date().toISOString(),
     startedAt: null,

@@ -397,6 +397,19 @@
                 </select>
               </label>
 
+              <label class="field compare-models-field">
+                <span class="compare-models-row">
+                  <input id="compare-models" type="checkbox" name="compareModels" />
+                  <span class="compare-models-copy">
+                    <strong>Comparar modelos lado a lado</strong>
+                    <small
+                      >Gera o mesmo prompt em todos os modelos disponíveis e mostra o resultado em
+                      split-view. Custo é a soma dos modelos.</small
+                    >
+                  </span>
+                </span>
+              </label>
+
               <label class="field">
                 <span>Concorrência</span>
                 <select id="concurrency" name="concurrency">
@@ -691,6 +704,35 @@
                 <p class="queue-empty">Adicione prompts e acompanhe a fila aqui.</p>
               </div>
             </section>
+          </section>
+
+          <section
+            class="panel comparison-panel collapsible-section"
+            data-collapsible-section="comparison"
+            hidden
+          >
+            <div class="section-head">
+              <h2>Comparações</h2>
+              <div class="section-head-actions">
+                <p id="comparison-summary" class="queue-summary">Nenhuma comparação ainda.</p>
+                <button
+                  class="panel-expand-button section-collapse-button"
+                  type="button"
+                  data-toggle-section="comparison"
+                  aria-label="Minimizar Comparações"
+                  aria-expanded="true"
+                  title="Minimizar Comparações"
+                >
+                  <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
+                    <path d="M6 12h12"></path>
+                    <path class="section-collapse-icon-vertical" d="M12 6v12"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div id="comparison-list" class="comparison-list">
+              <p class="gallery-empty">Ative "Comparar modelos lado a lado" para gerar pares.</p>
+            </div>
           </section>
 
           <section

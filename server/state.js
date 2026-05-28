@@ -109,15 +109,16 @@ export function saveJob(job) {
   const blob = JSON.stringify(job);
   db.prepare(
     `
-    INSERT INTO jobs (id, status, created_at, model, folder, batch_id, finished_at, data)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO jobs (id, status, created_at, model, folder, batch_id, comparison_id, finished_at, data)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
-      status      = excluded.status,
-      model       = excluded.model,
-      folder      = excluded.folder,
-      batch_id    = excluded.batch_id,
-      finished_at = excluded.finished_at,
-      data        = excluded.data
+      status        = excluded.status,
+      model         = excluded.model,
+      folder        = excluded.folder,
+      batch_id      = excluded.batch_id,
+      comparison_id = excluded.comparison_id,
+      finished_at   = excluded.finished_at,
+      data          = excluded.data
   `
   ).run(
     job.id,
@@ -126,6 +127,7 @@ export function saveJob(job) {
     job.model ?? null,
     job.targetFolder ?? null,
     job.batchId ?? null,
+    job.comparisonId ?? null,
     job.finishedAt ?? null,
     blob
   );
