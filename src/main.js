@@ -437,6 +437,7 @@ function bindCollapseEvents() {
 
 function bindFormEvents() {
   concurrencySelect?.addEventListener('change', async () => {
+    if (concurrencySelect) concurrencySelect.disabled = true;
     try {
       const response = await fetch('/api/settings', {
         method: 'POST',
@@ -450,6 +451,8 @@ function bindFormEvents() {
     } catch (error) {
       statusBox.textContent =
         error instanceof Error ? error.message : 'Falha ao atualizar concorrência.';
+    } finally {
+      if (concurrencySelect) concurrencySelect.disabled = false;
     }
   });
 
