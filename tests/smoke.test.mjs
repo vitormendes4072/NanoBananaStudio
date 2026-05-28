@@ -68,6 +68,10 @@ async function main() {
       assert.equal(typeof response.body.hasApiKey, 'boolean');
       assert.equal(typeof response.body.queueSize, 'number');
       assert.equal(response.body.concurrency, 1);
+      assert.ok(response.body.limits, 'limits deve estar presente');
+      assert.equal(typeof response.body.limits.jobs, 'number');
+      assert.equal(typeof response.body.limits.cutouts, 'number');
+      assert.equal(typeof response.body.limits.crops, 'number');
     });
 
     await runTest(results, 'GET /api/jobs retorna fila serializada', async () => {

@@ -15,6 +15,7 @@ export const state = {
   advancedPromptCollapsed: false,
   customFolders: [],
   customPromptPresets: [],
+  limits: { jobs: 200, cutouts: 100, crops: 100 },
 };
 
 export const MODEL_INFO = {

@@ -104,6 +104,7 @@ import {
 import { bindInteractiveActions, handleBulkRemoval, handleFolderAssignment } from './events.js';
 import './region-editor.js';
 import {
+  refreshHealth,
   refreshJobs,
   refreshUsage,
   refreshCutouts,
@@ -152,6 +153,7 @@ function renderInitialState() {
 }
 
 async function refreshInitialData() {
+  await refreshHealth();
   await Promise.all([
     refreshJobs(),
     refreshUsage(),
