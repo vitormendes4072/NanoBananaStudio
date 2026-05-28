@@ -39,6 +39,21 @@ export async function refreshHealth() {
   }
 }
 
+export async function refreshPricing() {
+  try {
+    const response = await fetch('/api/pricing');
+    const data = await response.json();
+    if (!response.ok) return;
+    state.pricing = {
+      models: data.models || {},
+      currency: data.currency || 'USD',
+      updatedAt: data.updatedAt || null,
+    };
+  } catch {
+    // non-critical — cost estimate will show "indisponível"
+  }
+}
+
 export async function refreshJobs() {
   try {
     const response = await fetch('/api/jobs');

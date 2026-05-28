@@ -74,6 +74,21 @@ async function main() {
       assert.equal(typeof response.body.limits.crops, 'number');
     });
 
+    await runTest(results, 'GET /api/pricing retorna precos dos modelos de imagem', async () => {
+      const response = await fetchJson('/api/pricing');
+      assert.equal(response.status, 200);
+      assert.equal(response.body.ok, true);
+      assert.equal(response.body.currency, 'USD');
+      assert.ok(response.body.models, 'models deve estar presente');
+      assert.equal(typeof response.body.models['gemini-2.5-flash-image'], 'number');
+      assert.equal(typeof response.body.models['gemini-3-pro-image-preview'], 'number');
+      assert.ok(
+        response.body.models['gemini-2.5-flash-image'] > 0,
+        'flash-image deve ter preco > 0'
+      );
+      assert.equal(typeof response.body.updatedAt, 'string');
+    });
+
     await runTest(results, 'GET /api/jobs retorna fila serializada', async () => {
       const response = await fetchJson('/api/jobs');
       assert.equal(response.status, 200);

@@ -18,6 +18,9 @@ import {
   maxJobs,
   maxCutouts,
   maxCrops,
+  allowedModels,
+  pricingTable,
+  pricingUpdatedAt,
 } from '../config.js';
 import { normalizeConcurrency } from '../utils.js';
 
@@ -122,6 +125,14 @@ router.get('/api/thumb', async (req, res) => {
     console.error('Thumbnail generation error:', err);
     return res.status(500).json({ error: 'Failed to generate thumbnail' });
   }
+});
+
+router.get('/api/pricing', (req, res) => {
+  const models = {};
+  for (const modelId of allowedModels) {
+    models[modelId] = pricingTable[modelId] ?? 0;
+  }
+  res.json({ ok: true, currency: 'USD', models, updatedAt: pricingUpdatedAt });
 });
 
 router.post('/api/settings', (req, res) => {

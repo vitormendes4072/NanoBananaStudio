@@ -2771,6 +2771,16 @@ button:disabled {
   text-align: center;
 }
 
+/* ── Cost estimate ────────────────────────────────────────────── */
+
+.cost-estimate {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
 /* ── Limit indicators ─────────────────────────────────────────── */
 
 .limit-warning {
