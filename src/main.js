@@ -527,7 +527,7 @@ function setLoading(isLoading, label = 'Adicionando job na fila...') {
   statusBox.textContent = isLoading ? label : statusBox.textContent;
 }
 
-function getActiveCreationFolder() {
+export function getActiveCreationFolder() {
   return normalizeFolderValue(folderFilterInput?.value);
 }
 
@@ -542,7 +542,7 @@ function loadCustomFolders() {
   }
 }
 
-function registerFolderName(folder) {
+export function registerFolderName(folder) {
   const normalizedFolder = normalizeFolderValue(folder);
   if (!normalizedFolder || state.customFolders.includes(normalizedFolder)) return;
   state.customFolders = [...state.customFolders, normalizedFolder].sort((left, right) =>
@@ -592,7 +592,7 @@ function syncSectionCollapsedState() {
   }
 }
 
-async function buildReferencePayload(files) {
+export async function buildReferencePayload(files) {
   return Promise.all(
     files.map(async (file) => ({
       name: file.name,
@@ -602,7 +602,7 @@ async function buildReferencePayload(files) {
   );
 }
 
-function syncReferenceInputFiles() {
+export function syncReferenceInputFiles() {
   if (!referenceInput) return;
   const dataTransfer = new DataTransfer();
   for (const file of state.selectedReferenceFiles) {
@@ -611,7 +611,7 @@ function syncReferenceInputFiles() {
   referenceInput.files = dataTransfer.files;
 }
 
-function renderReferencePreview() {
+export function renderReferencePreview() {
   if (!referencePreview) return;
   if (!state.selectedReferenceFiles.length) {
     referencePreview.innerHTML = `<p class="reference-empty">Nenhuma referência selecionada.</p>`;
@@ -640,7 +640,7 @@ function renderReferencePreview() {
   deps.bindInteractiveActions();
 }
 
-function renderBranchPreview() {
+export function renderBranchPreview() {
   if (!branchPreview) return;
   if (!state.selectedBranchReference) {
     branchPreview.innerHTML = `<p class="reference-empty">Nenhuma imagem base selecionada.</p>`;
@@ -661,7 +661,7 @@ function renderBranchPreview() {
   });
 }
 
-function renderRegionPreview() {
+export function renderRegionPreview() {
   if (!regionPreview) return;
   if (!state.selectedRegionReference) {
     regionPreview.innerHTML = `<p class="reference-empty">Nenhuma região marcada.</p>`;
@@ -680,7 +680,7 @@ function renderRegionPreview() {
   });
 }
 
-function selectBranchFromJob(jobId, keepPrompt) {
+export function selectBranchFromJob(jobId, keepPrompt) {
   const job = state.lastJobs.find((entry) => entry.id === jobId);
   if (!job?.result?.imageUrl) {
     statusBox.textContent = 'Não foi possível selecionar essa imagem como base.';
