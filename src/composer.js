@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { appLayout, composerColumn, composerPanel, composerExpandButton } from './dom.js';
 
 let composerPinFrame = 0;
@@ -103,9 +102,3 @@ export function collapseComposer() {
 export function isComposerExpanded() {
   return composerExpanded;
 }
-
-deps.requestComposerPanelPinning = requestComposerPanelPinning;
-deps.syncComposerExpandedState = syncComposerExpandedState;
-deps.toggleComposerExpanded = toggleComposerExpanded;
-deps.collapseComposer = collapseComposer;
-deps.isComposerExpanded = isComposerExpanded;

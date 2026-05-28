@@ -1,4 +1,3 @@
-import deps from './deps.js';
 import { escapeHtml } from './utils.js';
 import { usageSummary, usageCards, usageModels, usageLinks } from './dom.js';
 
@@ -47,5 +46,3 @@ export function renderUsage(data) {
     usageLinks.appendChild(anchor);
   }
 }
-
-deps.renderUsage = renderUsage;
