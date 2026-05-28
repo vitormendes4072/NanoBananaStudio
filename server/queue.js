@@ -15,6 +15,7 @@ import {
 import { generateImage } from './gemini.js';
 import { broadcast } from './sse.js';
 import { maxJobs } from './config.js';
+import { isRetryable } from './utils/retry.js';
 
 export function createJob({
   prompt,
@@ -76,14 +77,6 @@ export async function processQueue() {
 
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 1_000;
-
-/**
- * Erros que não se beneficiam de retry (falha imediata e definitiva).
- * @param {unknown} error
- */
-function isRetryable(error) {
-  return error?.errorType !== 'auth' && error?.errorType !== 'quota';
-}
 
 /**
  * Tenta gerar a imagem até MAX_RETRIES vezes com backoff exponencial.
