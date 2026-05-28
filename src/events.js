@@ -184,6 +184,9 @@ export function bindInteractiveActions() {
   }
   for (const button of document.querySelectorAll('[data-use-cutout-base]')) {
     button.onclick = async () => {
+      const originalLabel = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Carregando...';
       try {
         const r = await fetch('/api/cutouts');
         const d = await r.json();
@@ -205,6 +208,9 @@ export function bindInteractiveActions() {
       } catch (e) {
         statusBox.textContent =
           e instanceof Error ? e.message : 'Não foi possível usar esse recorte.';
+      } finally {
+        button.disabled = false;
+        button.textContent = originalLabel;
       }
     };
   }
@@ -238,6 +244,9 @@ export function bindInteractiveActions() {
   }
   for (const button of document.querySelectorAll('[data-use-crop-base]')) {
     button.onclick = async () => {
+      const originalLabel = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Carregando...';
       try {
         const r = await fetch('/api/crops');
         const d = await r.json();
@@ -259,6 +268,9 @@ export function bindInteractiveActions() {
       } catch (e) {
         statusBox.textContent =
           e instanceof Error ? e.message : 'Não foi possível usar esse recorte.';
+      } finally {
+        button.disabled = false;
+        button.textContent = originalLabel;
       }
     };
   }
@@ -452,6 +464,8 @@ export function bindInteractiveActions() {
         }))
       )
         return;
+      button.disabled = true;
+      button.classList.add('is-busy');
       try {
         const r = await fetch(`/api/product-models/${encodeURIComponent(alias)}`, {
           method: 'DELETE',
@@ -465,6 +479,8 @@ export function bindInteractiveActions() {
         const msg = e instanceof Error ? e.message : 'Falha ao excluir o modelo de produto.';
         statusBox.textContent = msg;
         showToast(msg, 'error');
+        button.disabled = false;
+        button.classList.remove('is-busy');
       }
     };
   }
@@ -497,6 +513,8 @@ export function bindInteractiveActions() {
         }))
       )
         return;
+      button.disabled = true;
+      button.classList.add('is-busy');
       try {
         const r = await fetch(`/api/image-templates/${encodeURIComponent(alias)}`, {
           method: 'DELETE',
@@ -510,6 +528,8 @@ export function bindInteractiveActions() {
         const msg = e instanceof Error ? e.message : 'Falha ao excluir o template visual.';
         statusBox.textContent = msg;
         showToast(msg, 'error');
+        button.disabled = false;
+        button.classList.remove('is-busy');
       }
     };
   }
@@ -603,6 +623,7 @@ export async function handleFolderAssignment(folderValue) {
     statusBox.textContent = msg;
     showToast(msg, 'error');
   } finally {
+    if (organizeSelectedButton) organizeSelectedButton.disabled = false;
     updateBulkSelectionUi();
   }
 }
