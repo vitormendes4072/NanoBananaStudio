@@ -90,6 +90,23 @@ async function main() {
       assert.ok(Array.isArray(response.body.byModel));
     });
 
+    await runTest(results, 'GET /api/analytics?days=7 respeita periodo de 7 dias', async () => {
+      const response = await fetchJson('/api/analytics?days=7');
+      assert.equal(response.status, 200);
+      assert.equal(response.body.ok, true);
+      assert.equal(response.body.periodDays, 7);
+      assert.ok(Array.isArray(response.body.dailyCosts));
+      assert.ok(Array.isArray(response.body.byModel));
+    });
+
+    await runTest(results, 'GET /api/analytics?days=0 retorna todos os registros', async () => {
+      const response = await fetchJson('/api/analytics?days=0');
+      assert.equal(response.status, 200);
+      assert.equal(response.body.ok, true);
+      assert.equal(response.body.periodDays, null);
+      assert.ok(Array.isArray(response.body.dailyCosts));
+    });
+
     await runTest(results, 'GET /api/cutouts e /api/crops retornam colecoes', async () => {
       const cutouts = await fetchJson('/api/cutouts');
       const crops = await fetchJson('/api/crops');
