@@ -239,37 +239,31 @@ function bindBulkEvents() {
   selectAllMediaButton?.addEventListener('click', toggleAllMediaSelection);
 
   downloadGalleryBulkButton?.addEventListener('click', () =>
-    deps.downloadSelectedItems(
-      Array.from(selectedGalleryIds)
-        .map((id) => state.lastJobs.find((job) => job.id === id)?.result)
-        .filter(Boolean),
-      'Selecione pelo menos uma imagem da Galeria para baixar.',
-      'Download da Galeria iniciado.'
+    deps.exportSelectedItems(
+      { jobs: Array.from(selectedGalleryIds) },
+      'Selecione pelo menos uma imagem da Galeria para baixar.'
     )
   );
   downloadCutoutsBulkButton?.addEventListener('click', () =>
-    deps.downloadSelectedItems(
-      Array.from(selectedCutoutIds)
-        .map((id) => state.lastCutouts.find((item) => item.id === id))
-        .filter(Boolean),
-      'Selecione pelo menos um item em Remover fundo para baixar.',
-      'Download de Remover fundo iniciado.'
+    deps.exportSelectedItems(
+      { cutouts: Array.from(selectedCutoutIds) },
+      'Selecione pelo menos um item em Remover fundo para baixar.'
     )
   );
   downloadCropsBulkButton?.addEventListener('click', () =>
-    deps.downloadSelectedItems(
-      Array.from(selectedCropIds)
-        .map((id) => state.lastCrops.find((item) => item.id === id))
-        .filter(Boolean),
-      'Selecione pelo menos um recorte para baixar.',
-      'Download de Recortes iniciado.'
+    deps.exportSelectedItems(
+      { crops: Array.from(selectedCropIds) },
+      'Selecione pelo menos um recorte para baixar.'
     )
   );
   downloadAllMediaButton?.addEventListener('click', () =>
-    deps.downloadSelectedItems(
-      deps.getSelectedMediaItems(),
-      'Selecione pelo menos um item para baixar.',
-      'Download dos itens selecionados iniciado.'
+    deps.exportSelectedItems(
+      {
+        jobs: Array.from(selectedGalleryIds),
+        cutouts: Array.from(selectedCutoutIds),
+        crops: Array.from(selectedCropIds),
+      },
+      'Selecione pelo menos um item para baixar.'
     )
   );
 
