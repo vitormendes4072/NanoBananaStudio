@@ -23,6 +23,8 @@ import {
   pricingUpdatedAt,
 } from '../config.js';
 import { normalizeConcurrency } from '../utils.js';
+import { VARIATION_AXES } from '../prompt-variations.js';
+import { maxVariationJobs } from '../config.js';
 
 const _require = createRequire(import.meta.url);
 const sharpPath = path.resolve(
@@ -133,6 +135,17 @@ router.get('/api/pricing', (req, res) => {
     models[modelId] = pricingTable[modelId] ?? 0;
   }
   res.json({ ok: true, currency: 'USD', models, updatedAt: pricingUpdatedAt });
+});
+
+router.get('/api/variations', (req, res) => {
+  // Expose only what the UI needs (id + label per option) — the prompt phrases
+  // stay server-side as the single source of truth for expansion.
+  const axes = VARIATION_AXES.map((axis) => ({
+    id: axis.id,
+    label: axis.label,
+    options: axis.options.map((opt) => ({ id: opt.id, label: opt.label })),
+  }));
+  res.json({ ok: true, axes, maxJobs: maxVariationJobs });
 });
 
 router.post('/api/settings', (req, res) => {

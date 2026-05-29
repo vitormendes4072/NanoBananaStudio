@@ -792,6 +792,108 @@ async function main() {
       }
     );
 
+    await runTest(
+      results,
+      'POST /api/jobs com variations cria um job por combinação (produto cartesiano)',
+      async () => {
+        // variations expande o produto cartesiano dos eixos selecionados.
+        // 2 ângulos × 2 fundos × 1 estilo = 4 jobs, todos no mesmo batchId,
+        // com prompts distintos.
+        process.env.GEMINI_API_KEY = 'fake-key-smoke-test';
+        try {
+          const response = await fetchJson('/api/jobs', {
+            method: 'POST',
+            body: JSON.stringify({
+              prompt: 'smoke variacoes automaticas',
+              variations: {
+                angles: ['frontal', 'lateral'],
+                backgrounds: ['branco-infinito', 'cinza-estudio'],
+                styles: ['produto-limpo'],
+              },
+              // quantity deve ser ignorado quando variations não está vazio
+              quantity: 5,
+            }),
+          });
+          assert.equal(response.status, 202);
+          assert.equal(response.body.quantity, 4);
+          assert.equal(response.body.jobs.length, 4);
+
+          const jobs = response.body.jobs;
+          const batchIds = new Set(jobs.map((j) => j.batchId));
+          assert.equal(batchIds.size, 1, 'todos os jobs devem compartilhar o mesmo batchId');
+          const [batchId] = batchIds;
+          assert.ok(batchId, 'batchId não deve ser nulo em variações');
+
+          const prompts = new Set(jobs.map((j) => j.prompt));
+          assert.equal(prompts.size, 4, 'cada job deve ter um prompt distinto');
+
+          // comparisonId deve ser null em variações (não é comparação)
+          for (const job of jobs) {
+            assert.equal(job.comparisonId, null);
+          }
+        } finally {
+          process.env.GEMINI_API_KEY = '';
+        }
+      }
+    );
+
+    await runTest(
+      results,
+      'POST /api/jobs com variations acima do limite é truncado (capped)',
+      async () => {
+        // 6 ângulos × 6 fundos × 4 estilos = 144 combinações → truncado para maxVariationJobs.
+        const { maxVariationJobs } = await import('../server/config.js');
+        process.env.GEMINI_API_KEY = 'fake-key-smoke-test';
+        try {
+          const response = await fetchJson('/api/jobs', {
+            method: 'POST',
+            body: JSON.stringify({
+              prompt: 'smoke variacoes cap',
+              variations: {
+                angles: ['frontal', 'lateral', 'tres-quartos', 'superior', 'closeup', 'traseira'],
+                backgrounds: [
+                  'branco-infinito',
+                  'cinza-estudio',
+                  'lifestyle',
+                  'gradiente',
+                  'madeira',
+                  'escuro',
+                ],
+                styles: ['produto-limpo', 'editorial-premium', 'lifestyle-natural', 'advertising'],
+              },
+            }),
+          });
+          assert.equal(response.status, 202);
+          assert.equal(response.body.quantity, maxVariationJobs);
+          assert.equal(response.body.jobs.length, maxVariationJobs);
+          assert.equal(response.body.capped, true);
+          assert.ok(
+            typeof response.body.note === 'string' && response.body.note.length > 0,
+            'resposta truncada deve incluir uma nota explicativa'
+          );
+        } finally {
+          process.env.GEMINI_API_KEY = '';
+        }
+      }
+    );
+
+    await runTest(results, 'GET /api/variations expõe o catálogo de eixos', async () => {
+      const response = await fetchJson('/api/variations');
+      assert.equal(response.status, 200);
+      assert.ok(Array.isArray(response.body.axes), 'axes deve ser um array');
+      assert.ok(response.body.axes.length >= 3, 'deve expor pelo menos 3 eixos');
+      assert.equal(typeof response.body.maxJobs, 'number');
+      for (const axis of response.body.axes) {
+        assert.ok(axis.id && axis.label, 'cada eixo deve ter id e label');
+        assert.ok(Array.isArray(axis.options) && axis.options.length > 0);
+        // o prompt interno NÃO deve vazar para o cliente
+        for (const opt of axis.options) {
+          assert.ok(opt.id && opt.label, 'cada opção deve ter id e label');
+          assert.equal(opt.prompt, undefined, 'o prompt interno não deve ser exposto');
+        }
+      }
+    });
+
     await runTest(results, 'referencia com dados corrompidos retorna 400', async () => {
       // '====' é base64 válido mas decodifica para buffer vazio (0 bytes).
       // normalizeReferenceImages lança badRequestError ao detectar buffer vazio.

@@ -94,7 +94,7 @@ import {
   syncProductModelInputFiles,
   syncImageTemplateInputFiles,
 } from './render-library.js';
-import { requestFolderSelection } from './dialogs.js';
+import { requestFolderSelection, requestConfirmation } from './dialogs.js';
 import {
   requestComposerPanelPinning,
   toggleComposerExpanded,
@@ -106,6 +106,7 @@ import './region-editor.js';
 import {
   refreshHealth,
   refreshPricing,
+  refreshVariations,
   refreshJobs,
   refreshUsage,
   refreshCutouts,
@@ -114,7 +115,13 @@ import {
   refreshImageTemplates,
   connectSSE,
 } from './api.js';
-import { costEstimate, compareModelsToggle } from './dom.js';
+import {
+  costEstimate,
+  compareModelsToggle,
+  variationsToggle,
+  variationsAxes,
+  variationsCounter,
+} from './dom.js';
 
 bootstrap();
 
@@ -155,7 +162,8 @@ function renderInitialState() {
 }
 
 async function refreshInitialData() {
-  await Promise.all([refreshHealth(), refreshPricing()]);
+  await Promise.all([refreshHealth(), refreshPricing(), refreshVariations()]);
+  renderVariationAxes();
   updateCostEstimate();
   await Promise.all([
     refreshJobs(),
@@ -457,7 +465,32 @@ function formatUpdatedAt(iso) {
 export function updateCostEstimate() {
   if (!costEstimate) return;
   const compare = Boolean(compareModelsToggle?.checked);
+  const variationsOn = Boolean(variationsToggle?.checked);
   const updatedAt = formatUpdatedAt(state.pricing.updatedAt);
+  const withDate = (base) => (updatedAt ? `${base} · tabela atualizada em ${updatedAt}` : base);
+
+  if (variationsOn) {
+    const count = computeVariationCount();
+    const model = modelSelect?.value;
+    const unit = state.pricing.models?.[model];
+    if (count === 0) {
+      costEstimate.textContent = 'Custo estimado: selecione ao menos uma variação';
+      return;
+    }
+    if (unit == null) {
+      costEstimate.textContent = 'Custo estimado: indisponível';
+      return;
+    }
+    const cap = state.variations.maxJobs || 20;
+    const effective = Math.min(count, cap);
+    const total = unit * effective;
+    const capNote = count > cap ? ` (limite ${cap})` : '';
+    const label = `${effective} imagens × ${formatCost(unit, state.pricing.currency)}${capNote}`;
+    costEstimate.textContent = withDate(
+      `Custo estimado: ${formatCost(total, state.pricing.currency)} (${label})`
+    );
+    return;
+  }
 
   if (compare) {
     const prices = state.pricing.models || {};
@@ -468,8 +501,9 @@ export function updateCostEstimate() {
     }
     const total = entries.reduce((sum, [, v]) => sum + v, 0);
     const label = `${entries.length} imagens (1 por modelo)`;
-    const base = `Custo estimado: ${formatCost(total, state.pricing.currency)} (${label})`;
-    costEstimate.textContent = updatedAt ? `${base} · tabela atualizada em ${updatedAt}` : base;
+    costEstimate.textContent = withDate(
+      `Custo estimado: ${formatCost(total, state.pricing.currency)} (${label})`
+    );
     return;
   }
 
@@ -483,17 +517,124 @@ export function updateCostEstimate() {
   const total = unit * qty;
   const label =
     qty === 1 ? '1 imagem' : `${qty} imagens × ${formatCost(unit, state.pricing.currency)}`;
-  const base = `Custo estimado: ${formatCost(total, state.pricing.currency)} (${label})`;
-  costEstimate.textContent = updatedAt ? `${base} · tabela atualizada em ${updatedAt}` : base;
+  costEstimate.textContent = withDate(
+    `Custo estimado: ${formatCost(total, state.pricing.currency)} (${label})`
+  );
+}
+
+// ── Auto-variations (D3) ──────────────────────────────────────────
+
+function getSelectedVariationIds(axisId) {
+  const arr = state.selectedVariations[axisId];
+  return Array.isArray(arr) ? arr : [];
+}
+
+function computeVariationCount() {
+  const axes = state.variations.axes || [];
+  let total = 1;
+  let anySelected = false;
+  for (const axis of axes) {
+    const picked = getSelectedVariationIds(axis.id).length;
+    if (picked > 0) {
+      total *= picked;
+      anySelected = true;
+    }
+  }
+  return anySelected ? total : 0;
+}
+
+function buildVariationsPayload() {
+  const payload = {};
+  for (const axis of state.variations.axes || []) {
+    const ids = getSelectedVariationIds(axis.id);
+    if (ids.length > 0) payload[axis.id] = ids;
+  }
+  return payload;
+}
+
+function renderVariationAxes() {
+  if (!variationsAxes) return;
+  const axes = state.variations.axes || [];
+  if (axes.length === 0) {
+    variationsAxes.innerHTML = '';
+    return;
+  }
+  variationsAxes.innerHTML = axes
+    .map((axis) => {
+      const chips = axis.options
+        .map(
+          (opt) =>
+            `<button class="preset-chip variation-chip" type="button" data-variation-axis="${escapeHtml(
+              axis.id
+            )}" data-variation-id="${escapeHtml(opt.id)}">${escapeHtml(opt.label)}</button>`
+        )
+        .join('');
+      return `
+        <div class="variation-axis-group">
+          <span class="variation-axis-label">${escapeHtml(axis.label)}</span>
+          <div class="preset-chip-row">${chips}</div>
+        </div>`;
+    })
+    .join('');
+}
+
+function updateVariationCounter() {
+  if (!variationsCounter) return;
+  const count = computeVariationCount();
+  const cap = state.variations.maxJobs || 20;
+  if (count === 0) {
+    variationsCounter.textContent = 'Selecione ao menos uma variação em qualquer eixo.';
+  } else if (count > cap) {
+    variationsCounter.textContent = `${count} combinações — serão geradas as primeiras ${cap} (limite).`;
+  } else {
+    variationsCounter.textContent = `Vai gerar ${count} ${count === 1 ? 'imagem' : 'imagens'}.`;
+  }
+}
+
+function syncVariationChipStates() {
+  if (!variationsAxes) return;
+  variationsAxes.querySelectorAll('.variation-chip').forEach((chip) => {
+    const axisId = chip.getAttribute('data-variation-axis');
+    const optId = chip.getAttribute('data-variation-id');
+    const active = getSelectedVariationIds(axisId).includes(optId);
+    chip.classList.toggle('is-active', active);
+  });
 }
 
 function syncCompareModelsState() {
   const compare = Boolean(compareModelsToggle?.checked);
+  const variationsOn = Boolean(variationsToggle?.checked);
+  // Compare and variations are mutually exclusive.
+  if (compare && variationsToggle) variationsToggle.disabled = true;
+  else if (variationsToggle) variationsToggle.disabled = false;
+
   if (modelSelect) modelSelect.disabled = compare;
   if (quantitySelect) {
-    quantitySelect.disabled = compare;
+    quantitySelect.disabled = compare || variationsOn;
     if (compare) quantitySelect.value = '1';
   }
+  updateCostEstimate();
+}
+
+function syncVariationsState() {
+  const variationsOn = Boolean(variationsToggle?.checked);
+  if (variationsAxes) variationsAxes.hidden = !variationsOn;
+  if (variationsCounter) variationsCounter.hidden = !variationsOn;
+  // Variations disable compare + quantity (mutually exclusive).
+  if (compareModelsToggle) compareModelsToggle.disabled = variationsOn;
+  if (quantitySelect)
+    quantitySelect.disabled = variationsOn || Boolean(compareModelsToggle?.checked);
+  if (variationsOn) syncVariationChipStates();
+  updateVariationCounter();
+  updateCostEstimate();
+}
+
+function toggleVariationChip(axisId, optId) {
+  const current = getSelectedVariationIds(axisId);
+  const next = current.includes(optId) ? current.filter((id) => id !== optId) : [...current, optId];
+  state.selectedVariations = { ...state.selectedVariations, [axisId]: next };
+  syncVariationChipStates();
+  updateVariationCounter();
   updateCostEstimate();
 }
 
@@ -501,6 +642,16 @@ function bindFormEvents() {
   modelSelect?.addEventListener('change', updateCostEstimate);
   quantitySelect?.addEventListener('change', updateCostEstimate);
   compareModelsToggle?.addEventListener('change', syncCompareModelsState);
+  variationsToggle?.addEventListener('change', syncVariationsState);
+  variationsAxes?.addEventListener('click', (event) => {
+    const chip = event.target.closest('.variation-chip');
+    if (!chip) return;
+    event.preventDefault();
+    toggleVariationChip(
+      chip.getAttribute('data-variation-axis'),
+      chip.getAttribute('data-variation-id')
+    );
+  });
 
   concurrencySelect?.addEventListener('change', async () => {
     if (concurrencySelect) concurrencySelect.disabled = true;
@@ -530,6 +681,32 @@ function bindFormEvents() {
       return;
     }
 
+    const variationsOn = Boolean(variationsToggle?.checked);
+    const variationsPayload = variationsOn ? buildVariationsPayload() : null;
+    if (variationsOn) {
+      const count = computeVariationCount();
+      if (count === 0) {
+        statusBox.textContent = 'Selecione ao menos uma variação para gerar o lote.';
+        return;
+      }
+      const cap = state.variations.maxJobs || 20;
+      const effective = Math.min(count, cap);
+      if (effective > 6) {
+        const model = modelSelect?.value;
+        const unit = state.pricing.models?.[model];
+        const costNote =
+          unit != null
+            ? ` Custo estimado: ${formatCost(unit * effective, state.pricing.currency)}.`
+            : '';
+        const confirmed = await requestConfirmation({
+          title: 'Gerar lote de variações',
+          message: `Você vai gerar ${effective} imagens.${costNote} Continuar?`,
+          confirmLabel: 'Gerar',
+        });
+        if (!confirmed) return;
+      }
+    }
+
     const activeTargetFolder = getActiveCreationFolder();
     if (activeTargetFolder) registerFolderName(activeTargetFolder);
     const promptResolution = resolvePromptProductModels(promptInput.value);
@@ -553,6 +730,7 @@ function bindFormEvents() {
           quantity: quantitySelect?.value || 1,
           model: modelSelect?.value || 'gemini-2.5-flash-image',
           compareModels: Boolean(compareModelsToggle?.checked),
+          variations: variationsPayload,
           folder: activeTargetFolder,
           referenceImages: [...regionReferenceImages, ...referenceImages],
           branchReference: state.selectedBranchReference,
@@ -562,6 +740,8 @@ function bindFormEvents() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Falha ao criar job.');
+
+      if (data.note) showToast(data.note, 'warning');
 
       promptInput.value = '';
       if (negativePromptInput) negativePromptInput.value = '';

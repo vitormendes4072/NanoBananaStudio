@@ -4,7 +4,8 @@ import { createJob, deleteJob, deleteGalleryJobsBulk, processQueue } from '../qu
 import { createBranchReference } from '../media.js';
 import { addClient, removeClient } from '../sse.js';
 import { generationLimiter } from '../rateLimits.js';
-import { allowedModels, defaultModel } from '../config.js';
+import { allowedModels, defaultModel, maxVariationJobs } from '../config.js';
+import { normalizeVariations, countVariations, expandVariations } from '../prompt-variations.js';
 import {
   serializeJob,
   normalizeQuantity,
@@ -85,10 +86,46 @@ router.post('/api/jobs', generationLimiter, (req, res) => {
   ];
 
   const compareModels = Boolean(body.compareModels);
+  const normalizedVariations = normalizeVariations(body.variations);
+  const variationCount = countVariations(normalizedVariations);
 
   const createdJobs = [];
+  let capped = false;
 
-  if (compareModels) {
+  if (variationCount > 0) {
+    // Auto-variation batch: expand the prompt across the selected axes (cartesian
+    // product), one job per combination, sharing a batchId. Takes precedence over
+    // compareModels and ignores body.quantity.
+    const model = pickAllowedValue(body.model, allowedModels, defaultModel);
+    let expandedPrompts = expandVariations(prompt, normalizedVariations);
+    let expandedBases = expandVariations(promptBase, normalizedVariations);
+
+    if (expandedPrompts.length > maxVariationJobs) {
+      capped = true;
+      expandedPrompts = expandedPrompts.slice(0, maxVariationJobs);
+      expandedBases = expandedBases.slice(0, maxVariationJobs);
+    }
+
+    const total = expandedPrompts.length;
+    const batchId = buildBatchId();
+    for (let index = 0; index < total; index++) {
+      createdJobs.push(
+        createJob({
+          prompt: expandedPrompts[index].prompt,
+          promptBase: expandedBases[index].prompt,
+          promptOptions,
+          model,
+          referenceImages: mergedReferenceImages,
+          productModels: resolvedProductModels.map(buildJobProductModelMeta),
+          imageTemplates: resolvedImageTemplates.map(buildJobImageTemplateMeta),
+          targetFolder,
+          batchId,
+          batchIndex: index + 1,
+          batchTotal: total,
+        })
+      );
+    }
+  } else if (compareModels) {
     // One job per allowed model, sharing a comparisonId. Ignores body.model and body.quantity.
     const comparisonId = buildComparisonId();
     for (const modelId of allowedModels) {
@@ -133,9 +170,17 @@ router.post('/api/jobs', generationLimiter, (req, res) => {
   }
   processQueue();
 
-  res
-    .status(202)
-    .json({ ok: true, quantity: createdJobs.length, jobs: createdJobs.map(serializeJob) });
+  const response = {
+    ok: true,
+    quantity: createdJobs.length,
+    jobs: createdJobs.map(serializeJob),
+  };
+  if (capped) {
+    response.capped = true;
+    response.note = `Limite de ${maxVariationJobs} variações por lote — geradas as primeiras ${createdJobs.length}.`;
+  }
+
+  res.status(202).json(response);
 });
 
 router.post('/api/jobs/:id/cancel', (req, res) => {

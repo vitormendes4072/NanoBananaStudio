@@ -73,6 +73,11 @@ export const maxCrops = process.env.MAX_CROPS ? parseInt(process.env.MAX_CROPS, 
 /** @type {number} Maximum number of reference images per job */
 export const maxReferenceImages = 4;
 
+/** @type {number} Maximum jobs created from a single auto-variation batch */
+export const maxVariationJobs = process.env.MAX_VARIATION_JOBS
+  ? parseInt(process.env.MAX_VARIATION_JOBS, 10)
+  : 20;
+
 /** @type {number} Maximum size in bytes per reference image (15 MB) */
 export const maxReferenceBytes = 15 * 1024 * 1024;
 
