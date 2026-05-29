@@ -55,6 +55,20 @@ export async function refreshPricing() {
   }
 }
 
+export async function refreshVariations() {
+  try {
+    const response = await fetch('/api/variations');
+    const data = await response.json();
+    if (!response.ok) return;
+    state.variations = {
+      axes: Array.isArray(data.axes) ? data.axes : [],
+      maxJobs: typeof data.maxJobs === 'number' ? data.maxJobs : 20,
+    };
+  } catch {
+    // non-critical — variation UI simply stays hidden if the catalogue can't load
+  }
+}
+
 export async function refreshJobs() {
   try {
     const response = await fetch('/api/jobs');

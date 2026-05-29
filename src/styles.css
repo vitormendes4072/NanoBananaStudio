@@ -2817,6 +2817,51 @@ button:disabled {
   line-height: 1.35;
 }
 
+/* ── Variations (modo batch) ───────────────────────────────────── */
+
+.variations-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.variation-axes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.variation-axis-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.variation-axis-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.variation-chip.is-active {
+  border-color: rgba(247, 185, 30, 0.6);
+  background: rgba(247, 185, 30, 0.22);
+  color: var(--text);
+}
+
+.variation-counter {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 /* ── Comparison panel ──────────────────────────────────────────── */
 
 .comparison-list {
