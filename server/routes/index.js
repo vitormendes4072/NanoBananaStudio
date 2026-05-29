@@ -15,8 +15,4 @@ router.use(libraryRouter);
 router.use(analyticsRouter);
 router.use(exportRouter);
 
-router.use((req, res) => {
-  res.status(404).json({ error: 'Rota não encontrada.' });
-});
-
 export default router;
