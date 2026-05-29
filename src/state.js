@@ -17,6 +17,9 @@ export const state = {
   customPromptPresets: [],
   limits: { jobs: 200, cutouts: 100, crops: 100 },
   pricing: { models: {}, currency: 'USD', updatedAt: null },
+  variations: { axes: [], maxJobs: 20 },
+  // selectedVariations: { angles: Set, backgrounds: Set, styles: Set }
+  selectedVariations: {},
 };
 
 export const MODEL_INFO = {

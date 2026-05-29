@@ -112,3 +112,6 @@ export const compareModelsToggle = document.querySelector('#compare-models');
 export const comparisonPanel = document.querySelector('[data-collapsible-section="comparison"]');
 export const comparisonSummary = document.querySelector('#comparison-summary');
 export const comparisonList = document.querySelector('#comparison-list');
+export const variationsToggle = document.querySelector('#variations-toggle');
+export const variationsAxes = document.querySelector('#variations-axes');
+export const variationsCounter = document.querySelector('#variations-counter');
