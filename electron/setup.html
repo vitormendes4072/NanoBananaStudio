@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'self';" />
+    <title>Configurar API Key</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 28px 32px;
+        background: #1b1b1f;
+        color: #e8e8ea;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 6px;
+      }
+      p {
+        font-size: 13px;
+        line-height: 1.5;
+        color: #a9a9b2;
+        margin: 0 0 18px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #c7c7cf;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        font-size: 14px;
+        border-radius: 8px;
+        border: 1px solid #3a3a42;
+        background: #26262c;
+        color: #f5f5f7;
+      }
+      input:focus {
+        outline: none;
+        border-color: #ffcb45;
+      }
+      .hint {
+        font-size: 11px;
+        color: #7d7d87;
+        margin-top: 8px;
+      }
+      .hint a {
+        color: #ffcb45;
+      }
+      .actions {
+        margin-top: 24px;
+        display: flex;
+        justify-content: flex-end;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        background: #ffcb45;
+        color: #1b1b1f;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🍌 Nano Banana Studio</h1>
+    <p>
+      Cole sua chave da API do Google Gemini. Ela é gravada localmente em
+      <code>config.json</code> na pasta de dados do app e nunca sai da sua máquina.
+    </p>
+
+    <label for="key">GEMINI_API_KEY</label>
+    <input id="key" type="password" placeholder="AIza..." autocomplete="off" spellcheck="false" />
+    <div class="hint">
+      Não tem uma chave? Gere em
+      <a href="https://aistudio.google.com/app/apikey">aistudio.google.com/app/apikey</a>.
+    </div>
+
+    <div class="actions">
+      <button id="save">Salvar e iniciar</button>
+    </div>
+
+    <script src="setup.js"></script>
+  </body>
+</html>
