@@ -9,6 +9,5 @@ contextBridge.exposeInMainWorld('setupApi', {
   saveApiKey: (key) => ipcRenderer.send('save-api-key', key),
 
   /** Recebe a chave atual (se já houver) para pré-preencher o campo. */
-  onCurrentKey: (callback) =>
-    ipcRenderer.on('current-key', (_event, key) => callback(key)),
+  onCurrentKey: (callback) => ipcRenderer.on('current-key', (_event, key) => callback(key)),
 });
