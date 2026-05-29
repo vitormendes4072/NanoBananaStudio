@@ -2430,6 +2430,14 @@ button:disabled {
   color: var(--text-soft);
 }
 
+/* Sentinel used by IntersectionObserver for gallery lazy-loading */
+#gallery-sentinel {
+  grid-column: 1 / -1;
+  height: 1px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 @media (max-width: 900px) {
   .shell {
     width: min(calc(100% - 20px), 1180px);
