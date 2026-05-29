@@ -20,10 +20,55 @@ import {
   submitButton,
 } from './dom.js';
 
+const GALLERY_PAGE_SIZE = 24;
+
 let lastRenderedJobsKey = '';
+
+/** @type {IntersectionObserver | null} */
+let galleryObserver = null;
+/** @type {Array<object>} */
+let galleryPendingJobs = [];
+let galleryRenderedCount = 0;
+let galleryTotalCount = 0;
+let galleryJobLimit = { text: '', level: 'normal' };
 
 export function resetRenderedJobsKey() {
   lastRenderedJobsKey = '';
+}
+
+function disconnectGalleryObserver() {
+  if (galleryObserver) {
+    galleryObserver.disconnect();
+    galleryObserver = null;
+  }
+  galleryPendingJobs = [];
+  galleryRenderedCount = 0;
+  galleryTotalCount = 0;
+}
+
+function appendNextGalleryBatch() {
+  const sentinel = document.getElementById('gallery-sentinel');
+  if (sentinel) sentinel.remove();
+
+  const batch = galleryPendingJobs.splice(0, GALLERY_PAGE_SIZE);
+  for (const job of batch) galleryGrid.appendChild(createGalleryCard(job));
+  galleryRenderedCount += batch.length;
+  bindInteractiveActions();
+
+  gallerySummary.textContent = `${galleryRenderedCount} de ${galleryTotalCount} imagens visiveis${galleryJobLimit.text}`;
+  applyLimitClass(gallerySummary, galleryJobLimit.level);
+
+  if (galleryPendingJobs.length) {
+    const newSentinel = document.createElement('div');
+    newSentinel.id = 'gallery-sentinel';
+    galleryGrid.appendChild(newSentinel);
+    galleryObserver.observe(newSentinel);
+  } else {
+    if (galleryObserver) {
+      galleryObserver.disconnect();
+      galleryObserver = null;
+    }
+  }
 }
 
 export function thumbUrl(originalUrl) {
@@ -348,6 +393,7 @@ export function applyLimitClass(element, level) {
 }
 
 export function renderGallery(completedJobs, allJobs = [], allCompletedJobs = []) {
+  disconnectGalleryObserver();
   pruneSelectionSet(
     selectedGalleryIds,
     completedJobs.map((job) => job.id)
@@ -375,20 +421,46 @@ export function renderGallery(completedJobs, allJobs = [], allCompletedJobs = []
   }
 
   const jobLimit = buildLimitSummary(allCompletedJobs.length, state.limits?.jobs);
-  gallerySummary.textContent = `${Math.min(completedJobs.length, 12)} de ${completedJobs.length} imagens visiveis${jobLimit.text}`;
-  applyLimitClass(gallerySummary, jobLimit.level);
   galleryGrid.innerHTML = '';
   galleryGrid.classList.remove('gallery-grid-grouped');
 
   if (viewModeSelect.value === 'folders') {
+    // Folders view: render all items grouped — virtualization would break group structure
     renderFolderGroupedCollection(
       galleryGrid,
-      completedJobs.slice(0, 12),
+      completedJobs,
       createGalleryCard,
       'Nenhuma imagem encontrada nesta visualização.'
     );
-  } else {
-    for (const job of completedJobs.slice(0, 12)) galleryGrid.appendChild(createGalleryCard(job));
+    gallerySummary.textContent = `${completedJobs.length} de ${completedJobs.length} imagens visiveis${jobLimit.text}`;
+    applyLimitClass(gallerySummary, jobLimit.level);
+    return;
+  }
+
+  // Flat view: render first batch immediately, rest via IntersectionObserver
+  const firstBatch = completedJobs.slice(0, GALLERY_PAGE_SIZE);
+  galleryPendingJobs = completedJobs.slice(GALLERY_PAGE_SIZE);
+  galleryRenderedCount = firstBatch.length;
+  galleryTotalCount = completedJobs.length;
+  galleryJobLimit = jobLimit;
+
+  for (const job of firstBatch) galleryGrid.appendChild(createGalleryCard(job));
+
+  gallerySummary.textContent = `${galleryRenderedCount} de ${galleryTotalCount} imagens visiveis${jobLimit.text}`;
+  applyLimitClass(gallerySummary, jobLimit.level);
+
+  if (galleryPendingJobs.length) {
+    const sentinel = document.createElement('div');
+    sentinel.id = 'gallery-sentinel';
+    galleryGrid.appendChild(sentinel);
+
+    galleryObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) appendNextGalleryBatch();
+      },
+      { rootMargin: '200px' }
+    );
+    galleryObserver.observe(sentinel);
   }
 }
 
