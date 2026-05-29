@@ -33,6 +33,13 @@ app.use('/references', express.static(dataDir + '/references'));
 app.use('/uploads', express.static(dataDir + '/uploads'));
 
 app.use(express.static(publicDir));
+
+// Rotas de API desconhecidas — deve ficar ANTES do fallback SPA.
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'Rota não encontrada.' });
+});
+
+// SPA fallback — serve index.html para qualquer rota não reconhecida (react-router / client-side routing).
 app.use((req, res) => {
   res.sendFile(publicDir + '/index.html');
 });
